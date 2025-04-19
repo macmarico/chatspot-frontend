@@ -41,14 +41,30 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .message-item {
   margin-bottom: 15px;
   padding: 12px;
-  background-color: #e3f2fd;
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  max-width: 80%;
+}
+
+.message-item.received {
+  background-color: #e3f2fd;
+  align-self: flex-start;
+  margin-right: auto;
+  border-bottom-left-radius: 2px;
+}
+
+.message-item.sent {
+  background-color: #e8f5e9;
+  align-self: flex-end;
+  margin-left: auto;
+  border-bottom-right-radius: 2px;
 }
 
 .message-header {
@@ -60,7 +76,14 @@
 
 .sender-id {
   font-weight: 600;
+}
+
+.received .sender-id {
   color: #1565c0;
+}
+
+.sent .sender-id {
+  color: #2e7d32;
 }
 
 .timestamp {

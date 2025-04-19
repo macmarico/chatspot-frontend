@@ -1,16 +1,34 @@
-import { useState } from 'react';
-import { useSocket } from '../context/SocketContext';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  sendMessageRequest,
+  selectConnected,
+  selectError
+} from '../redux/slices/socketSlice';
 import './MessageInput.css';
 
 const MessageInput = () => {
-  const { sendMessage, connected } = useSocket();
+  const dispatch = useDispatch();
+  const connected = useSelector(selectConnected);
+  const error = useSelector(selectError);
+
   const [receiverId, setReceiverId] = useState('');
   const [messageText, setMessageText] = useState('');
   const [sendStatus, setSendStatus] = useState(null);
 
+  // Watch for errors from Redux and update send status
+  useEffect(() => {
+    if (error && error.includes('Failed to send message')) {
+      setSendStatus({
+        success: false,
+        message: error
+      });
+    }
+  }, [error]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!receiverId.trim() || !messageText.trim()) {
       setSendStatus({
         success: false,
@@ -18,32 +36,27 @@ const MessageInput = () => {
       });
       return;
     }
-    
-    const success = sendMessage(receiverId, messageText);
-    
-    if (success) {
-      setSendStatus({
-        success: true,
-        message: 'Message sent successfully'
-      });
-      setMessageText(''); // Clear message input after sending
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSendStatus(null);
-      }, 3000);
-    } else {
-      setSendStatus({
-        success: false,
-        message: 'Failed to send message'
-      });
-    }
+
+    // Dispatch the send message action
+    dispatch(sendMessageRequest({ receiverId, messageText }));
+
+    // Assume success for now (the saga will handle errors)
+    setSendStatus({
+      success: true,
+      message: 'Message sent successfully'
+    });
+    setMessageText(''); // Clear message input after sending
+
+    // Clear success message after 3 seconds
+    setTimeout(() => {
+      setSendStatus(null);
+    }, 3000);
   };
 
   return (
     <div className="message-input">
       <h2>Send Message</h2>
-      
+
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="receiver-id">Receiver ID:</label>
@@ -57,7 +70,7 @@ const MessageInput = () => {
             required
           />
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="message-text">Message:</label>
           <textarea
@@ -70,22 +83,22 @@ const MessageInput = () => {
             required
           />
         </div>
-        
-        <button 
-          type="submit" 
+
+        <button
+          type="submit"
           className="send-button"
           disabled={!connected}
         >
           Send Message
         </button>
       </form>
-      
+
       {sendStatus && (
         <div className={`send-status ${sendStatus.success ? 'success' : 'error'}`}>
           {sendStatus.message}
         </div>
       )}
-      
+
       {!connected && (
         <div className="connection-required">
           Connect to a server to send messages

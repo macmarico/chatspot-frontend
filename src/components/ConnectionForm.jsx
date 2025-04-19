@@ -1,27 +1,42 @@
 import { useState } from 'react';
-import { useSocket } from '../context/SocketContext';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  connectRequest,
+  disconnectRequest,
+  selectConnected,
+  selectConnecting,
+  selectError,
+  selectServerUrl,
+  selectAuthToken
+} from '../redux/slices/socketSlice';
 import './ConnectionForm.css';
 
 const ConnectionForm = () => {
-  const { connect, disconnect, connected, error } = useSocket();
-  const [serverUrl, setServerUrl] = useState('ws://localhost:3000');
-  const [authToken, setAuthToken] = useState('');
+  const dispatch = useDispatch();
+  const connected = useSelector(selectConnected);
+  const connecting = useSelector(selectConnecting);
+  const error = useSelector(selectError);
+  const storedServerUrl = useSelector(selectServerUrl);
+  const storedAuthToken = useSelector(selectAuthToken);
+
+  const [serverUrl, setServerUrl] = useState(storedServerUrl);
+  const [authToken, setAuthToken] = useState(storedAuthToken);
   const [showAuthToken, setShowAuthToken] = useState(false);
 
   const handleConnect = (e) => {
     e.preventDefault();
-    connect(serverUrl, authToken || null);
+    dispatch(connectRequest({ serverUrl, authToken: authToken || null }));
   };
 
   const handleDisconnect = () => {
-    disconnect();
+    dispatch(disconnectRequest());
   };
 
   return (
     <div className="connection-form">
       <h2>Connection</h2>
       {error && <div className="error-message">{error}</div>}
-      
+
       <form onSubmit={handleConnect}>
         <div className="form-group">
           <label htmlFor="server-url">Server URL:</label>
@@ -30,11 +45,11 @@ const ConnectionForm = () => {
             type="text"
             value={serverUrl}
             onChange={(e) => setServerUrl(e.target.value)}
-            disabled={connected}
+            disabled={connected || connecting}
             required
           />
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="auth-token">Authentication Token (optional):</label>
           <div className="token-input">
@@ -43,11 +58,11 @@ const ConnectionForm = () => {
               type={showAuthToken ? 'text' : 'password'}
               value={authToken}
               onChange={(e) => setAuthToken(e.target.value)}
-              disabled={connected}
+              disabled={connected || connecting}
               placeholder="JWT or other auth token"
             />
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="toggle-visibility"
               onClick={() => setShowAuthToken(!showAuthToken)}
             >
@@ -55,13 +70,19 @@ const ConnectionForm = () => {
             </button>
           </div>
         </div>
-        
+
         <div className="form-actions">
           {!connected ? (
-            <button type="submit" className="connect-button">Connect</button>
+            <button
+              type="submit"
+              className="connect-button"
+              disabled={connecting}
+            >
+              {connecting ? 'Connecting...' : 'Connect'}
+            </button>
           ) : (
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="disconnect-button"
               onClick={handleDisconnect}
             >
@@ -70,7 +91,7 @@ const ConnectionForm = () => {
           )}
         </div>
       </form>
-      
+
       {connected && (
         <div className="connection-status connected">
           ✅ Connected
