@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import socketReducer from './slices/socketSlice';
+import authReducer from './slices/authSlice';
 import rootSaga from './sagas/rootSaga';
 
 // Create saga middleware
@@ -10,7 +11,7 @@ const sagaMiddleware = createSagaMiddleware();
 const store = configureStore({
   reducer: {
     socket: socketReducer,
-    // Add other reducers here
+    auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
