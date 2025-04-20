@@ -1,6 +1,6 @@
-import { eventChannel, END } from 'redux-saga';
+import { eventChannel, END, EventChannel } from 'redux-saga';
 import { call, put, take, takeEvery, fork, cancel, cancelled, select } from 'redux-saga/effects';
-import { io } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import {
   connectRequest,
   connectSuccess,
@@ -14,43 +14,42 @@ import {
   selectServerUrl,
   selectAuthToken
 } from '../slices/socketSlice';
+import { selectUser } from '../slices/authSlice';
+import { PayloadAction } from '@reduxjs/toolkit';
+import { chatDBService } from '../../database/service';
 
 // Socket instance that will be shared across sagas
-let socket;
+let socket: Socket;
 
-// Create an event channel for socket events
-function createSocketChannel(socket) {
+// Create a channel for socket events
+function createSocketChannel(socket: Socket) {
   return eventChannel(emit => {
-    // Connection event handlers
-    const connectHandler = () => {
+    // Handle connect event
+    socket.on('connect', () => {
       emit({ type: 'connect', socketId: socket.id });
-    };
+    });
 
-    const disconnectHandler = () => {
+    // Handle disconnect event
+    socket.on('disconnect', () => {
       emit({ type: 'disconnect' });
-    };
+    });
 
-    const errorHandler = (error) => {
+    // Handle error event
+    socket.on('connect_error', (error) => {
       emit({ type: 'error', error });
-    };
+    });
 
-    const messageHandler = (data) => {
+    // Handle message event
+    socket.on('message', (data) => {
       emit({ type: 'message', data });
-    };
-
-    // Set up event listeners
-    socket.on('connect', connectHandler);
-    socket.on('disconnect', disconnectHandler);
-    socket.on('connect_error', errorHandler);
-    socket.on('message', messageHandler);
+    });
 
     // Return unsubscribe function
     return () => {
-      // Remove event listeners on unsubscribe
-      socket.off('connect', connectHandler);
-      socket.off('disconnect', disconnectHandler);
-      socket.off('connect_error', errorHandler);
-      socket.off('message', messageHandler);
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('connect_error');
+      socket.off('message');
     };
   });
 }
@@ -59,11 +58,11 @@ function createSocketChannel(socket) {
 function* connectSaga() {
   try {
     // Get connection details from state
-    const serverUrl = yield select(selectServerUrl);
-    const authToken = yield select(selectAuthToken);
+    const serverUrl: string = yield select(selectServerUrl);
+    const authToken: string = yield select(selectAuthToken);
 
     // Create connection options
-    const options = {};
+    const options: any = {};
     if (authToken) {
       options.auth = { token: authToken };
     }
@@ -73,49 +72,14 @@ function* connectSaga() {
       socket.disconnect();
     }
 
-    // Create new socket connection
+    // Connect to the server
     socket = io(serverUrl, options);
 
-    // Create a channel to listen for socket events
-    const socketChannel = yield call(createSocketChannel, socket);
+    // Create a channel for socket events
+    const socketChannel: EventChannel<any> = yield call(createSocketChannel, socket);
 
-    // Start a fork to handle socket events
-    const socketTask = yield fork(handleSocketEvents, socketChannel);
-
-    // Wait for disconnect request
-    yield take(disconnectRequest.type);
-
-    // Cancel the socket task
-    yield cancel(socketTask);
-
-    // Disconnect the socket
-    if (socket) {
-      socket.disconnect();
-      socket = null;
-    }
-
-    // Dispatch disconnect success
-    yield put(disconnectSuccess());
-
-  } catch (error) {
-    // Handle connection errors
-    yield put(connectFailure(error.message || 'Connection failed'));
-  } finally {
-    if (yield cancelled()) {
-      // Clean up if the saga was cancelled
-      if (socket) {
-        socket.disconnect();
-        socket = null;
-      }
-    }
-  }
-}
-
-// Saga to handle socket events from the channel
-function* handleSocketEvents(socketChannel) {
-  try {
+    // Process events from the channel
     while (true) {
-      // Take events from the socket channel
       const event = yield take(socketChannel);
 
       // Handle different event types
@@ -134,23 +98,39 @@ function* handleSocketEvents(socketChannel) {
         case 'message':
           yield put(messageReceived(event.data));
           console.log('📩 Message received:', event.data);
+
+          // Save received message to database
+          try {
+            const currentUser: string = yield select(selectUser);
+            if (currentUser && event.data.sender_id && event.data.message) {
+              yield call(
+                chatDBService.saveMessage,
+                event.data.sender_id,
+                currentUser,
+                event.data.message,
+                false
+              );
+            }
+          } catch (dbError) {
+            console.error('Failed to save message to database:', dbError);
+          }
           break;
         default:
           break;
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Socket channel error:', error);
   } finally {
     if (yield cancelled()) {
       // Close the channel if the saga was cancelled
-      socketChannel.close();
+      // socketChannel.close();
     }
   }
 }
 
 // Saga to handle sending messages
-function* sendMessageSaga(action) {
+function* sendMessageSaga(action: PayloadAction<{ receiverId: string, messageText: string }>) {
   try {
     const { receiverId, messageText } = action.payload;
 
@@ -164,7 +144,7 @@ function* sendMessageSaga(action) {
       message: messageText,
       // Add metadata for UI display
       sent_by_me: true,
-      timestamp: new Date().toISOString()
+      timestamp: Date.now()
     };
 
     // Send the message
@@ -176,20 +156,47 @@ function* sendMessageSaga(action) {
     // Add the sent message to our messages list
     yield put(messageReceived(messageObj));
 
+    // Save message to database
+    try {
+      const currentUser: string = yield select(selectUser);
+      if (currentUser) {
+        yield call(
+          chatDBService.saveMessage,
+          currentUser,
+          receiverId,
+          messageText,
+          true
+        );
+      }
+    } catch (dbError) {
+      console.error('Failed to save message to database:', dbError);
+    }
+
     // Dispatch success action
     yield put(sendMessageSuccess());
 
-  } catch (error) {
+  } catch (error: any) {
     // Handle send errors
     yield put(sendMessageFailure(error.message || 'Failed to send message'));
   }
 }
 
+// Saga to handle disconnection
+function* disconnectSaga() {
+  try {
+    if (socket) {
+      socket.disconnect();
+    }
+    yield put(disconnectSuccess());
+  } catch (error: any) {
+    console.error('Disconnect error:', error);
+  }
+}
+
 // Root socket saga
 export function* socketSaga() {
-  // Watch for connection requests
+  // Handle socket actions
   yield takeEvery(connectRequest.type, connectSaga);
-
-  // Watch for send message requests
   yield takeEvery(sendMessageRequest.type, sendMessageSaga);
+  yield takeEvery(disconnectRequest.type, disconnectSaga);
 }

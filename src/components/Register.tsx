@@ -3,19 +3,20 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerRequest, clearError, selectAuthError, selectAuthLoading, selectIsAuthenticated } from '../redux/slices/authSlice';
 import './Auth.css';
+import { RootState } from '../redux/store';
 
-const Register = () => {
+const Register: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const error = useSelector(selectAuthError);
   const loading = useSelector(selectAuthLoading);
   const isAuthenticated = useSelector(selectIsAuthenticated);
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -31,21 +32,17 @@ const Register = () => {
     };
   }, [dispatch]);
 
-  // Validate passwords match
+  // Validate password match
   useEffect(() => {
     if (confirmPassword && password !== confirmPassword) {
       setPasswordError('Passwords do not match');
     } else {
-      setPasswordError('');
+      setPasswordError(null);
     }
   }, [password, confirmPassword]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!username.trim() || !password.trim() || !confirmPassword.trim()) {
-      return;
-    }
     
     if (password !== confirmPassword) {
       setPasswordError('Passwords do not match');
@@ -57,14 +54,18 @@ const Register = () => {
 
   return (
     <div className="auth-container">
-      <div className="auth-card">
+      <div className="auth-form">
         <h2>Register for ChatSpot</h2>
         
-        {error && <div className="auth-error">{error}</div>}
+        {error && (
+          <div className="auth-error">
+            {error}
+          </div>
+        )}
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">Username:</label>
             <input
               id="username"
               type="text"
@@ -76,7 +77,7 @@ const Register = () => {
           </div>
           
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">Password:</label>
             <div className="password-input">
               <input
                 id="password"
@@ -97,7 +98,7 @@ const Register = () => {
           </div>
           
           <div className="form-group">
-            <label htmlFor="confirm-password">Confirm Password</label>
+            <label htmlFor="confirm-password">Confirm Password:</label>
             <div className="password-input">
               <input
                 id="confirm-password"
@@ -108,13 +109,15 @@ const Register = () => {
                 required
               />
             </div>
-            {passwordError && <div className="field-error">{passwordError}</div>}
+            {passwordError && (
+              <div className="input-error">{passwordError}</div>
+            )}
           </div>
           
-          <button
-            type="submit"
+          <button 
+            type="submit" 
             className="auth-button"
-            disabled={loading || passwordError}
+            disabled={loading || !!passwordError}
           >
             {loading ? 'Registering...' : 'Register'}
           </button>

@@ -1,0 +1,229 @@
+import { database, getRoomId } from './config';
+import { Q } from '@nozbe/watermelondb';
+import { Chat } from './models/Chat';
+import { Room } from './models/Room';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+// Get collections
+const chatsCollection = database.get<Chat>('chats');
+const roomsCollection = database.get<Room>('rooms');
+
+// Database service for chat operations
+export const chatDBService = {
+  // Initialize the database
+  initialize: async (): Promise<boolean> => {
+    try {
+      // Perform a simple write operation to ensure the database is working
+      await database.write(async () => {
+        // Just check if we can access the collections
+        const chats = await chatsCollection.query().fetch();
+        const rooms = await roomsCollection.query().fetch();
+        console.log('Database initialized with', chats.length, 'chats and', rooms.length, 'rooms');
+      });
+      return true;
+    } catch (error) {
+      console.error('Failed to initialize database:', error);
+      return false;
+    }
+  },
+
+  // Get or create a room
+  getOrCreateRoom: async (currentUserId: string, otherUserId: string): Promise<Room> => {
+    try {
+      const roomId = getRoomId(currentUserId, otherUserId);
+
+      // Check if room exists
+      const existingRoom = await roomsCollection.query(
+        Q.where('room_id', roomId),
+        Q.where('user_id', otherUserId)
+      ).fetch();
+
+      if (existingRoom.length > 0) {
+        return existingRoom[0];
+      }
+
+      // Create new room using database.write
+      const newRoom = await database.write(async () => {
+        return await roomsCollection.create(room => {
+          room.roomId = roomId;
+          room.userId = otherUserId;
+          room.lastMsg = '';
+          room.updated = Date.now();
+        });
+      });
+
+      return newRoom;
+    } catch (error) {
+      console.error('Failed to get or create room:', error);
+      throw error;
+    }
+  },
+
+  // Save a new message
+  saveMessage: async (senderId: string, receiverId: string, message: string, isMine: boolean = true): Promise<Chat> => {
+    try {
+      const roomId = getRoomId(senderId, receiverId);
+      const timestamp = Date.now();
+
+      // Use database.write to perform all operations in a single transaction
+      const chatMessage = await database.write(async () => {
+        // Create the message
+        const chatMessage = await chatsCollection.create(chat => {
+          chat.roomId = roomId;
+          chat.senderId = senderId;
+          chat.receiverId = receiverId;
+          chat.message = message;
+          chat.timestamp = timestamp;
+          chat.status = 'sent';
+          chat.isMine = isMine;
+        });
+
+        // Update or create the room
+        const rooms = await roomsCollection.query(
+          Q.where('room_id', roomId),
+          Q.where('user_id', isMine ? receiverId : senderId)
+        ).fetch();
+
+        if (rooms.length > 0) {
+          await rooms[0].update(room => {
+            room.lastMsg = message;
+            room.updated = timestamp;
+          });
+        } else {
+          await roomsCollection.create(room => {
+            room.roomId = roomId;
+            room.userId = isMine ? receiverId : senderId;
+            room.lastMsg = message;
+            room.updated = timestamp;
+          });
+        }
+
+        return chatMessage;
+      });
+
+      return chatMessage;
+    } catch (error) {
+      console.error('Failed to save message:', error);
+      throw error;
+    }
+  },
+
+  // Get all messages for a room
+  getMessages: async (userId1: string, userId2: string): Promise<Record<string, any>[]> => {
+    try {
+      const roomId = getRoomId(userId1, userId2);
+
+      const messages = await chatsCollection.query(
+        Q.where('room_id', roomId),
+        Q.sortBy('timestamp', Q.asc)
+      ).fetch();
+
+      return messages.map(message => message.toJSON());
+    } catch (error) {
+      console.error('Failed to get messages:', error);
+      return [];
+    }
+  },
+
+  // Observe messages for a room (reactive)
+  observeMessages: (userId1: string, userId2: string): Observable<Record<string, any>[]> => {
+    const roomId = getRoomId(userId1, userId2);
+
+    return chatsCollection.query(
+      Q.where('room_id', roomId),
+      Q.sortBy('timestamp', Q.asc)
+    ).observe()
+    .pipe(
+      map(messages => messages.map(message => message.toJSON()))
+    );
+  },
+
+  // Get all rooms for a user
+  getRooms: async (userId: string): Promise<Record<string, any>[]> => {
+    try {
+      const rooms = await roomsCollection.query(
+        Q.or(
+          Q.where('user_id', userId),
+          Q.where('room_id', Q.like(`%${userId}%`))
+        ),
+        Q.sortBy('updated', Q.desc)
+      ).fetch();
+
+      return rooms.map(room => room.toJSON());
+    } catch (error) {
+      console.error('Failed to get rooms:', error);
+      return [];
+    }
+  },
+
+  // Observe rooms for a user (reactive)
+  observeRooms: (userId: string): Observable<Record<string, any>[]> => {
+    return roomsCollection.query(
+      Q.or(
+        Q.where('user_id', userId),
+        Q.where('room_id', Q.like(`%${userId}%`))
+      ),
+      Q.sortBy('updated', Q.desc)
+    ).observe()
+    .pipe(
+      map(rooms => rooms.map(room => room.toJSON()))
+    );
+  },
+
+  // Update message status
+  updateMessageStatus: async (messageId: string, status: string): Promise<boolean> => {
+    try {
+      const message = await chatsCollection.find(messageId);
+
+      await database.write(async () => {
+        await message.update(msg => {
+          msg.status = status;
+        });
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Failed to update message status:', error);
+      return false;
+    }
+  },
+
+  // Delete a message
+  deleteMessage: async (messageId: string): Promise<boolean> => {
+    try {
+      const message = await chatsCollection.find(messageId);
+
+      await database.write(async () => {
+        await message.destroyPermanently();
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+      return false;
+    }
+  },
+
+  // Delete all messages in a room
+  clearRoom: async (userId1: string, userId2: string): Promise<boolean> => {
+    try {
+      const roomId = getRoomId(userId1, userId2);
+
+      const messages = await chatsCollection.query(
+        Q.where('room_id', roomId)
+      ).fetch();
+
+      await database.write(async () => {
+        for (const message of messages) {
+          await message.destroyPermanently();
+        }
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Failed to clear room:', error);
+      return false;
+    }
+  }
+};

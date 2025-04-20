@@ -1,6 +1,20 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { RootState } from '../store';
 
-const initialState = {
+interface AuthState {
+  user: string | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
+interface LoginSuccessPayload {
+  access_token: string;
+  username: string;
+}
+
+const initialState: AuthState = {
   user: null,
   token: localStorage.getItem('auth_token') || null,
   isAuthenticated: !!localStorage.getItem('auth_token'),
@@ -17,7 +31,7 @@ const authSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    loginSuccess: (state, action) => {
+    loginSuccess: (state, action: PayloadAction<LoginSuccessPayload>) => {
       state.loading = false;
       state.isAuthenticated = true;
       state.token = action.payload.access_token;
@@ -25,7 +39,7 @@ const authSlice = createSlice({
       // Store token in localStorage for persistence
       localStorage.setItem('auth_token', action.payload.access_token);
     },
-    loginFailure: (state, action) => {
+    loginFailure: (state, action: PayloadAction<string>) => {
       state.loading = false;
       state.error = action.payload;
     },
@@ -35,7 +49,7 @@ const authSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    registerSuccess: (state, action) => {
+    registerSuccess: (state, action: PayloadAction<LoginSuccessPayload>) => {
       state.loading = false;
       state.isAuthenticated = true;
       state.token = action.payload.access_token;
@@ -43,7 +57,7 @@ const authSlice = createSlice({
       // Store token in localStorage for persistence
       localStorage.setItem('auth_token', action.payload.access_token);
     },
-    registerFailure: (state, action) => {
+    registerFailure: (state, action: PayloadAction<string>) => {
       state.loading = false;
       state.error = action.payload;
     },
@@ -77,11 +91,11 @@ export const {
 } = authSlice.actions;
 
 // Export selectors
-export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
-export const selectAuthToken = (state) => state.auth.token;
-export const selectUser = (state) => state.auth.user;
-export const selectAuthLoading = (state) => state.auth.loading;
-export const selectAuthError = (state) => state.auth.error;
+export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated;
+export const selectAuthToken = (state: RootState) => state.auth.token;
+export const selectUser = (state: RootState) => state.auth.user;
+export const selectAuthLoading = (state: RootState) => state.auth.loading;
+export const selectAuthError = (state: RootState) => state.auth.error;
 
 // Export reducer
 export default authSlice.reducer;

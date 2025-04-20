@@ -4,15 +4,21 @@ import { selectIsAuthenticated } from './redux/slices/authSlice'
 import Login from './components/Login'
 import Register from './components/Register'
 import Chat from './components/Chat'
+import ChatDBTest from './components/ChatDBTest'
 import './App.css'
 
 // Protected route component
-const ProtectedRoute = ({ children }) => {
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 };
 
-function App() {
+const App: React.FC = () => {
+
   return (
     <BrowserRouter>
       <div className="app-container">
@@ -25,6 +31,7 @@ function App() {
                 <Chat />
               </ProtectedRoute>
             } />
+            <Route path="/test" element={<ChatDBTest />} />
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         </main>

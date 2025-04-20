@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import socketReducer from './slices/socketSlice';
 import authReducer from './slices/authSlice';
+import chatDBReducer from './slices/chatDBSlice';
 import rootSaga from './sagas/rootSaga';
 
 // Create saga middleware
@@ -12,10 +13,11 @@ const store = configureStore({
   reducer: {
     socket: socketReducer,
     auth: authReducer,
+    chatDB: chatDBReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      thunk: false,
+      thunk: true, // Enable thunks for chatDB async operations
       serializableCheck: {
         // Ignore these action types
         ignoredActions: ['socket/connectSuccess'],
@@ -29,5 +31,9 @@ const store = configureStore({
 
 // Run the root saga
 sagaMiddleware.run(rootSaga);
+
+// Export types
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
 
 export default store;

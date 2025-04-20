@@ -1,0 +1,151 @@
+.rooms-list {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+
+
+.no-rooms {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #757575;
+  text-align: center;
+  padding: 20px;
+  flex: 1;
+}
+
+.no-rooms-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+  color: #F04F3D;
+}
+
+.no-rooms p {
+  margin: 5px 0;
+}
+
+.no-rooms-hint {
+  font-size: 0.9em;
+  opacity: 0.7;
+}
+
+.rooms {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.room-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.room-item:hover {
+  background-color: #f5f5f5;
+}
+
+.room-item.selected {
+  background-color: #FEF5F4;
+  border-left: 3px solid #F04F3D;
+}
+
+.room-item.self-chat {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Room user info styles */
+.room-user-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.room-user-info .user-avatar {
+  width: 49px;
+  height: 49px;
+  font-size: 20px;
+  box-shadow: 0 2px 4px rgba(240, 79, 61, 0.2);
+}
+
+.room-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.room-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  width: 100%;
+}
+
+.room-time {
+  font-size: 0.75em;
+  color: #F04F3D;
+  white-space: nowrap;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.room-last-message {
+  color: #757575;
+  font-size: 0.85em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 3px;
+  max-width: 250px;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 767px) {
+  .room-item {
+    padding: 10px 12px;
+  }
+
+  .room-user-info .user-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .room-user-info .user-name {
+    font-size: 0.95em;
+  }
+
+  .room-time {
+    font-size: 0.7em;
+  }
+
+  .room-last-message {
+    font-size: 0.8em;
+    max-width: 200px;
+  }
+
+  .no-rooms-icon {
+    font-size: 36px;
+  }
+
+  .no-rooms p {
+    font-size: 0.9em;
+    margin: 3px 0;
+  }
+}
+
+

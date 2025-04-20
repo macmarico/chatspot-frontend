@@ -10,8 +10,9 @@ import {
   selectAuthToken
 } from '../redux/slices/socketSlice';
 import './ConnectionForm.css';
+import { RootState } from '../redux/store';
 
-const ConnectionForm = () => {
+const ConnectionForm: React.FC = () => {
   const dispatch = useDispatch();
   const connected = useSelector(selectConnected);
   const connecting = useSelector(selectConnecting);
@@ -19,11 +20,11 @@ const ConnectionForm = () => {
   const storedServerUrl = useSelector(selectServerUrl);
   const storedAuthToken = useSelector(selectAuthToken);
 
-  const [serverUrl, setServerUrl] = useState(storedServerUrl);
-  const [authToken, setAuthToken] = useState(storedAuthToken);
-  const [showAuthToken, setShowAuthToken] = useState(false);
+  const [serverUrl, setServerUrl] = useState<string>(storedServerUrl);
+  const [authToken, setAuthToken] = useState<string>(storedAuthToken);
+  const [showAuthToken, setShowAuthToken] = useState<boolean>(false);
 
-  const handleConnect = (e) => {
+  const handleConnect = (e: React.FormEvent) => {
     e.preventDefault();
     dispatch(connectRequest({ serverUrl, authToken: authToken || null }));
   };
@@ -34,9 +35,14 @@ const ConnectionForm = () => {
 
   return (
     <div className="connection-form">
-      <h2>Connection</h2>
-      {error && <div className="error-message">{error}</div>}
-
+      <h2>Server Connection</h2>
+      
+      {error && (
+        <div className="connection-error">
+          {error}
+        </div>
+      )}
+      
       <form onSubmit={handleConnect}>
         <div className="form-group">
           <label htmlFor="server-url">Server URL:</label>

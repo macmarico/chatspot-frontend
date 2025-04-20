@@ -3,17 +3,18 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginRequest, clearError, selectAuthError, selectAuthLoading, selectIsAuthenticated } from '../redux/slices/authSlice';
 import './Auth.css';
+import { RootState } from '../redux/store';
 
-const Login = () => {
+const Login: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const error = useSelector(selectAuthError);
   const loading = useSelector(selectAuthLoading);
   const isAuthenticated = useSelector(selectIsAuthenticated);
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -29,26 +30,25 @@ const Login = () => {
     };
   }, [dispatch]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!username.trim() || !password.trim()) {
-      return;
-    }
-    
     dispatch(loginRequest({ username, password }));
   };
 
   return (
     <div className="auth-container">
-      <div className="auth-card">
+      <div className="auth-form">
         <h2>Login to ChatSpot</h2>
         
-        {error && <div className="auth-error">{error}</div>}
+        {error && (
+          <div className="auth-error">
+            {error}
+          </div>
+        )}
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">Username:</label>
             <input
               id="username"
               type="text"
@@ -60,7 +60,7 @@ const Login = () => {
           </div>
           
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">Password:</label>
             <div className="password-input">
               <input
                 id="password"
@@ -80,8 +80,8 @@ const Login = () => {
             </div>
           </div>
           
-          <button
-            type="submit"
+          <button 
+            type="submit" 
             className="auth-button"
             disabled={loading}
           >
