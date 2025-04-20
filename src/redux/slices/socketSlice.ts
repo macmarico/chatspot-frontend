@@ -78,7 +78,7 @@ const socketSlice = createSlice({
       state.socket = null;
       state.connected = false;
     },
-    
+
     // Message actions
     sendMessageRequest: (state, action: PayloadAction<SendMessageRequestPayload>) => {
       // No state changes needed here, the saga will handle sending
@@ -90,9 +90,12 @@ const socketSlice = createSlice({
       state.error = action.payload;
     },
     messageReceived: (state, action: PayloadAction<Message>) => {
-      state.messages.push(action.payload);
+      // Don't add special messages to the messages list
+      if (action.payload.message !== '__CLEAR_CHAT__') {
+        state.messages.push(action.payload);
+      }
     },
-    
+
     // Error handling
     setError: (state, action: PayloadAction<string>) => {
       state.error = action.payload;

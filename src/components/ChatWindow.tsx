@@ -1,10 +1,12 @@
-import { useSelector } from 'react-redux';
-import { selectConnected } from '../redux/slices/socketSlice';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectConnected, sendMessageRequest } from '../redux/slices/socketSlice';
 import { selectUser } from '../redux/slices/authSlice';
 import './ChatWindow.css';
 import { RootState } from '../redux/store';
-import { useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import UserInfo from './UserInfo';
+import ClearChatModal from './ClearChatModal';
+import { chatDBService } from '../database/service';
 
 interface Message {
   id: string;
@@ -22,12 +24,17 @@ type MessageRecord = Record<string, any> | Message;
 interface ChatWindowProps {
   messages: MessageRecord[];
   receiverId: string | null;
+  onClearChat?: () => void;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = null }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = null, onClearChat }) => {
+  const dispatch = useDispatch();
   const connected = useSelector(selectConnected);
   const currentUser = useSelector(selectUser);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const [showClearModal, setShowClearModal] = useState<boolean>(false);
+  const [clearingChat, setClearingChat] = useState<boolean>(false);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -74,15 +81,64 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
     }
   };
 
+  // Handle opening the clear chat modal
+  const handleOpenClearModal = () => {
+    setShowClearModal(true);
+  };
+
+  // Handle closing the clear chat modal
+  const handleCloseClearModal = () => {
+    setShowClearModal(false);
+  };
+
+  // Handle clearing the chat
+  const handleClearChat = async () => {
+    if (!currentUser || !receiverId) return;
+
+    try {
+      setClearingChat(true);
+
+      // Clear messages in local database
+      await chatDBService.clearRoom(currentUser, receiverId);
+
+      // Send a special message to notify the other user to clear their chat too
+      dispatch(sendMessageRequest({
+        receiverId,
+        messageText: '__CLEAR_CHAT__' // Special message type
+      }));
+
+      // Call the parent component's onClearChat callback if provided
+      if (onClearChat) {
+        onClearChat();
+      }
+
+      setShowClearModal(false);
+    } catch (error) {
+      console.error('Failed to clear chat:', error);
+    } finally {
+      setClearingChat(false);
+    }
+  };
+
   return (
     <div className="chat-window">
       <div className="chat-window-header">
         {receiverId && (
           <>
             <UserInfo userId={receiverId} className="chat-contact-info" />
-            <span className="chat-contact-status">
-              {connected ? 'Online' : 'Offline'}
-            </span>
+            <div className="chat-header-actions">
+              <span className="chat-contact-status">
+                {connected ? 'Online' : 'Offline'}
+              </span>
+              <button
+                className="clear-chat-btn"
+                onClick={handleOpenClearModal}
+                title="Clear all messages"
+              >
+                <span className="clear-icon">🗑️</span>
+                <span className="clear-text">Clear Chat</span>
+              </button>
+            </div>
           </>
         )}
       </div>
@@ -124,6 +180,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
           </div>
         )}
       </div>
+
+      {showClearModal && (
+        <ClearChatModal
+          onClose={handleCloseClearModal}
+          onConfirm={handleClearChat}
+          loading={clearingChat}
+        />
+      )}
     </div>
   );
 };

@@ -99,20 +99,32 @@ function* connectSaga() {
           yield put(messageReceived(event.data));
           console.log('📩 Message received:', event.data);
 
-          // Save received message to database
+          // Handle received message
           try {
             const currentUser: string = yield select(selectUser);
             if (currentUser && event.data.sender_id && event.data.message) {
-              yield call(
-                chatDBService.saveMessage,
-                event.data.sender_id,
-                currentUser,
-                event.data.message,
-                false
-              );
+              // Check if it's a special clear chat message
+              if (event.data.message === '__CLEAR_CHAT__') {
+                console.log('Received clear chat request from', event.data.sender_id);
+                // Clear the chat in the local database
+                yield call(
+                  chatDBService.clearRoom,
+                  currentUser,
+                  event.data.sender_id
+                );
+              } else {
+                // It's a regular message, save it to the database
+                yield call(
+                  chatDBService.saveMessage,
+                  event.data.sender_id,
+                  currentUser,
+                  event.data.message,
+                  false
+                );
+              }
             }
           } catch (dbError) {
-            console.error('Failed to save message to database:', dbError);
+            console.error('Failed to handle received message:', dbError);
           }
           break;
         default:
@@ -153,23 +165,27 @@ function* sendMessageSaga(action: PayloadAction<{ receiverId: string, messageTex
       message: messageText,
     });
 
-    // Add the sent message to our messages list
-    yield put(messageReceived(messageObj));
+    // Add the sent message to our messages list (except for special messages)
+    if (messageText !== '__CLEAR_CHAT__') {
+      yield put(messageReceived(messageObj));
 
-    // Save message to database
-    try {
-      const currentUser: string = yield select(selectUser);
-      if (currentUser) {
-        yield call(
-          chatDBService.saveMessage,
-          currentUser,
-          receiverId,
-          messageText,
-          true
-        );
+      // Save regular message to database
+      try {
+        const currentUser: string = yield select(selectUser);
+        if (currentUser) {
+          yield call(
+            chatDBService.saveMessage,
+            currentUser,
+            receiverId,
+            messageText,
+            true
+          );
+        }
+      } catch (dbError) {
+        console.error('Failed to save message to database:', dbError);
       }
-    } catch (dbError) {
-      console.error('Failed to save message to database:', dbError);
+    } else {
+      console.log('Sending clear chat request to', receiverId);
     }
 
     // Dispatch success action

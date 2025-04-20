@@ -130,7 +130,11 @@ const Chat: React.FC = () => {
           {selectedReceiverId ? (
             <>
               <div className="chat-window-container">
-                <ChatWindow messages={messages} receiverId={selectedReceiverId} />
+                <ChatWindow
+                  messages={messages}
+                  receiverId={selectedReceiverId}
+                  onClearChat={() => console.log('Chat cleared')}
+                />
               </div>
 
               <div className="message-input-container">
