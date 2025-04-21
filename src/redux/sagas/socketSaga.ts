@@ -113,25 +113,29 @@ function* connectSaga() {
               switch (messageType) {
                 case 'clear_chat':
                   console.log('Received clear chat request from', event.data.sender_id);
-                  // Clear the chat in the local database
+                  // Clear the chat in the local database and update room info
                   yield call(
                     chatDBService.clearRoom,
                     currentUser,
                     event.data.sender_id
                   );
 
-                  // // Add the clear_chat message to the UI
-                  // yield put(messageReceived(event.data));
+                  // Save the clear_chat message to database and update room info
+                  yield call(
+                    chatDBService.sendClearChatMessage,
+                    event.data.sender_id,
+                    currentUser
+                  );
+                  break;
 
-                  // // Save the clear_chat message to database
-                  // yield call(
-                  //   chatDBService.saveMessage,
-                  //   event.data.sender_id,
-                  //   currentUser,
-                  //   event.data.message,
-                  //   false,
-                  //   'clear_chat'
-                  // );
+                case 'delete_user':
+                  console.log('Received delete user request from', event.data.sender_id);
+                  // Delete the user room completely
+                  yield call(
+                    chatDBService.deleteUserRoom,
+                    currentUser,
+                    event.data.sender_id
+                  );
                   break;
 
                 case 'typing':
@@ -177,7 +181,7 @@ function* connectSaga() {
 }
 
 // Saga to handle sending messages
-function* sendMessageSaga(action: PayloadAction<{ receiverId: string, messageText: string, messageType?: 'text' | 'clear_chat' | 'typing' }>) {
+function* sendMessageSaga(action: PayloadAction<{ receiverId: string, messageText: string, messageType?: 'text' | 'clear_chat' | 'typing' | 'delete_user' }>) {
   try {
     const { receiverId, messageText, messageType = 'text' } = action.payload;
 
@@ -185,15 +189,15 @@ function* sendMessageSaga(action: PayloadAction<{ receiverId: string, messageTex
       throw new Error('Cannot send message: Not connected');
     }
 
-    // Create message object with type
-    const messageObj = {
-      receiver_id: receiverId,
-      message: messageText,
-      type: messageType,
-      // Add metadata for UI display
-      sent_by_me: true,
-      timestamp: Date.now()
-    };
+    // Create message object with type (used for text messages)
+    // const messageObj = {
+    //   receiver_id: receiverId,
+    //   message: messageText,
+    //   type: messageType,
+    //   // Add metadata for UI display
+    //   sent_by_me: true,
+    //   timestamp: Date.now()
+    // };
 
     // Send the message with type field
     socket.emit('message', {
@@ -209,11 +213,31 @@ function* sendMessageSaga(action: PayloadAction<{ receiverId: string, messageTex
         try {
           const currentUser: string = yield select(selectUser);
           if (currentUser) {
-            // Clear local messages
+            // Clear local messages and update room info
             yield call(chatDBService.clearRoom, currentUser, receiverId);
+
+            // Send a clear chat message (this will also update room info)
+            yield call(
+              chatDBService.sendClearChatMessage,
+              currentUser,
+              receiverId
+            );
           }
         } catch (dbError) {
           console.error('Failed to clear chat:', dbError);
+        }
+        break;
+
+      case 'delete_user':
+        console.log('Sending delete user request to', receiverId);
+        try {
+          const currentUser: string = yield select(selectUser);
+          if (currentUser) {
+            // Delete the user room completely
+            yield call(chatDBService.deleteUserRoom, currentUser, receiverId);
+          }
+        } catch (dbError) {
+          console.error('Failed to delete user room:', dbError);
         }
         break;
 

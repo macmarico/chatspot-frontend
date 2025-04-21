@@ -7,6 +7,7 @@ import { RootState } from '../redux/store';
 import { useState, useEffect, useRef } from 'react';
 import UserInfo from './UserInfo';
 import ClearChatModal from './ClearChatModal';
+import DeleteUserModal from './DeleteUserModal';
 // We don't need to import chatDBService anymore as the socketSaga handles clearing
 
 interface Message {
@@ -15,7 +16,7 @@ interface Message {
   sender_id: string;
   receiver_id: string;
   message: string;
-  type?: 'text' | 'clear_chat' | 'typing'; // Add message type
+  type?: 'text' | 'clear_chat' | 'typing' | 'delete_user'; // Add message type
   timestamp: number;
   status: string;
   is_mine: boolean;
@@ -37,6 +38,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
 
   const [showClearModal, setShowClearModal] = useState<boolean>(false);
   const [clearingChat, setClearingChat] = useState<boolean>(false);
+  const [showDeleteUserModal, setShowDeleteUserModal] = useState<boolean>(false);
+  const [deletingUser, setDeletingUser] = useState<boolean>(false);
   // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -127,6 +130,41 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
     }
   };
 
+  // Handle opening the delete user modal
+  const handleOpenDeleteUserModal = () => {
+    setShowDeleteUserModal(true);
+  };
+
+  // Handle closing the delete user modal
+  const handleCloseDeleteUserModal = () => {
+    setShowDeleteUserModal(false);
+  };
+
+  // Handle deleting the user
+  const handleDeleteUser = async () => {
+    if (!currentUser || !receiverId) return;
+
+    try {
+      setDeletingUser(true);
+
+      // Send a delete_user type message to notify the other user to delete the room
+      dispatch(sendMessageRequest({
+        receiverId,
+        messageText: 'User deleted',
+        messageType: 'delete_user'
+      }));
+
+      // The socketSaga will handle deleting the user room when sending a delete_user message
+      // This ensures both sides delete the room consistently
+
+      setShowDeleteUserModal(false);
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+    } finally {
+      setDeletingUser(false);
+    }
+  };
+
   return (
     <div className="chat-window">
       <div className="chat-window-header">
@@ -148,14 +186,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
                   ) : 'Online'
                 ) : 'Offline'}
               </span>
-              <button
-                className="clear-chat-btn"
-                onClick={handleOpenClearModal}
-                title="Clear all messages"
-              >
-                <span className="clear-icon">🗑️</span>
-                <span className="clear-text">Clear Chat</span>
-              </button>
+              <div className="chat-header-buttons">
+                <button
+                  className="clear-chat-btn"
+                  onClick={handleOpenClearModal}
+                  title="Clear all messages"
+                >
+                  <span className="clear-icon">🗑️</span>
+                  <span className="clear-text">Clear Chat</span>
+                </button>
+                <button
+                  className="delete-user-btn"
+                  onClick={handleOpenDeleteUserModal}
+                  title="Delete this user"
+                >
+                  <span className="delete-icon">❌</span>
+                  <span className="delete-text">Delete User</span>
+                </button>
+              </div>
             </div>
           </>
         )}
@@ -217,6 +265,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
           onClose={handleCloseClearModal}
           onConfirm={handleClearChat}
           loading={clearingChat}
+        />
+      )}
+
+      {showDeleteUserModal && (
+        <DeleteUserModal
+          onClose={handleCloseDeleteUserModal}
+          onConfirm={handleDeleteUser}
+          loading={deletingUser}
+          username={receiverId || undefined}
         />
       )}
     </div>

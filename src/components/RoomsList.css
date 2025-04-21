@@ -15,25 +15,52 @@
   justify-content: center;
   align-items: center;
   height: 100%;
-  color: #757575;
+  color: var(--text-secondary);
   text-align: center;
-  padding: 20px;
+  padding: 15px;
   flex: 1;
 }
 
+@media (min-width: 768px) {
+  .no-rooms {
+    padding: 20px;
+  }
+}
+
 .no-rooms-icon {
-  font-size: 48px;
-  margin-bottom: 15px;
-  color: #F04F3D;
+  font-size: 36px;
+  margin-bottom: 10px;
+  color: var(--primary-color);
+}
+
+@media (min-width: 768px) {
+  .no-rooms-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+  }
 }
 
 .no-rooms p {
-  margin: 5px 0;
+  margin: 3px 0;
+  font-size: 0.9em;
+}
+
+@media (min-width: 768px) {
+  .no-rooms p {
+    margin: 5px 0;
+    font-size: 1em;
+  }
 }
 
 .no-rooms-hint {
-  font-size: 0.9em;
+  font-size: 0.8em;
   opacity: 0.7;
+}
+
+@media (min-width: 768px) {
+  .no-rooms-hint {
+    font-size: 0.9em;
+  }
 }
 
 .rooms {
@@ -49,10 +76,16 @@
 .room-item {
   display: flex;
   align-items: center;
-  padding: 12px 15px;
+  padding: 10px 12px;
   cursor: pointer;
   transition: background-color 0.2s;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+@media (min-width: 768px) {
+  .room-item {
+    padding: 12px 15px;
+  }
 }
 
 .room-item:hover {
@@ -61,7 +94,7 @@
 
 .room-item.selected {
   background-color: #FEF5F4;
-  border-left: 3px solid #F04F3D;
+  border-left: 3px solid var(--primary-color);
 }
 
 .room-item.self-chat {
@@ -76,10 +109,18 @@
 }
 
 .room-user-info .user-avatar {
-  width: 49px;
-  height: 49px;
-  font-size: 20px;
-  box-shadow: 0 2px 4px rgba(240, 79, 61, 0.2);
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+@media (min-width: 768px) {
+  .room-user-info .user-avatar {
+    width: 49px;
+    height: 49px;
+    font-size: 20px;
+  }
 }
 
 .room-details {
@@ -96,55 +137,46 @@
 }
 
 .room-time {
-  font-size: 0.75em;
-  color: #F04F3D;
+  font-size: 0.7em;
+  color: var(--primary-color);
   white-space: nowrap;
-  margin-left: 8px;
+  margin-left: 6px;
   font-weight: 500;
 }
 
+@media (min-width: 768px) {
+  .room-time {
+    font-size: 0.75em;
+    margin-left: 8px;
+  }
+}
+
 .room-last-message {
-  color: #757575;
-  font-size: 0.85em;
+  color: var(--text-secondary);
+  font-size: 0.8em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin-top: 3px;
-  max-width: 250px;
+  max-width: 200px;
 }
 
-/* Mobile-specific styles */
-@media (max-width: 767px) {
-  .room-item {
-    padding: 10px 12px;
-  }
-
-  .room-user-info .user-avatar {
-    width: 40px;
-    height: 40px;
-    font-size: 18px;
-  }
-
-  .room-user-info .user-name {
-    font-size: 0.95em;
-  }
-
-  .room-time {
-    font-size: 0.7em;
-  }
-
+@media (min-width: 768px) {
   .room-last-message {
-    font-size: 0.8em;
-    max-width: 200px;
+    font-size: 0.85em;
+    max-width: 250px;
   }
+}
 
-  .no-rooms-icon {
-    font-size: 36px;
-  }
+/* Mobile-first styles are now the default */
 
-  .no-rooms p {
-    font-size: 0.9em;
-    margin: 3px 0;
+.room-user-info .user-name {
+  font-size: 0.95em;
+}
+
+@media (min-width: 768px) {
+  .room-user-info .user-name {
+    font-size: 1em;
   }
 }
 

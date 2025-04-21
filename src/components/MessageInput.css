@@ -13,40 +13,57 @@
   align-items: center;
   width: 100%;
   background-color: #F0F0F0;
-  padding: 10px 15px;
-  border-radius: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
   flex-wrap: nowrap;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
   position: relative;
+}
+
+@media (min-width: 768px) {
+  .message-input-container {
+    padding: 10px 15px;
+    border-radius: var(--radius-md);
+  }
 }
 
 .message-input {
   flex: 1;
-  border: 1.5px solid #D0D0D0;
+  border: 1.5px solid var(--input-border);
   background-color: white;
-  border-radius: 21px;
-  padding: 12px 16px;
-  font-size: 15px;
+  border-radius: 18px;
+  padding: 10px 14px;
+  font-size: 14px;
   line-height: 20px;
-  min-height: 44px;
+  min-height: 40px;
   max-height: 120px;
   resize: none;
   outline: none;
   font-family: inherit;
   min-width: 0; /* Allows flex item to shrink below content size */
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-  color: #333;
+  color: var(--text-color);
   margin-right: 8px;
   transition: border-color 0.2s, box-shadow 0.2s;
-  width: calc(100% - 60px); /* Account for send button width + margin + padding */
+  width: calc(100% - 50px); /* Account for send button width + margin + padding */
   display: block;
   box-sizing: border-box;
 }
 
+@media (min-width: 768px) {
+  .message-input {
+    border-radius: 21px;
+    padding: 12px 16px;
+    font-size: 15px;
+    min-height: 44px;
+    width: calc(100% - 60px);
+  }
+}
+
 .message-input:focus {
-  border-color: #F04F3D;
+  border-color: var(--primary-color);
   border-width: 2px;
-  box-shadow: 0 0 0 2px rgba(240, 79, 61, 0.2);
+  box-shadow: 0 0 0 2px var(--primary-color-light);
 }
 
 .message-input:disabled {
@@ -55,13 +72,13 @@
 }
 
 .send-button {
-  background-color: #F04F3D;
+  background-color: var(--primary-color);
   color: white;
   border: none;
-  min-width: 44px;
-  min-height: 44px;
-  width: 44px;
-  height: 44px;
+  min-width: 40px;
+  min-height: 40px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -71,13 +88,33 @@
   transition: background-color 0.2s;
   box-shadow: 0 2px 4px rgba(240, 79, 61, 0.3);
   position: absolute;
-  right: 15px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
 }
 
+.send-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+@media (min-width: 768px) {
+  .send-button {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+    right: 15px;
+  }
+
+  .send-button svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
 .send-button:hover {
-  background-color: #E03A2A;
+  background-color: var(--primary-color-dark);
 }
 
 .send-button:disabled {
@@ -88,20 +125,28 @@
 
 .send-status {
   position: absolute;
-  top: -40px;
+  top: -35px;
   left: 50%;
   transform: translateX(-50%);
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
   z-index: 10;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-sm);
   animation: fadeIn 0.3s ease-in-out;
+}
+
+@media (min-width: 768px) {
+  .send-status {
+    top: -40px;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
 }
 
 .send-status.success {
   background-color: #FEE8E6;
-  color: #F04F3D;
+  color: var(--primary-color);
 }
 
 .send-status.error {
@@ -120,57 +165,4 @@
   }
 }
 
-/* Add desktop-specific styles */
-@media (min-width: 768px) {
-  .message-input-container {
-    padding: 12px 15px;
-  }
-
-  .message-input {
-    min-height: 44px;
-    padding: 12px 16px 12px 16px;
-    font-size: 15px;
-    width: calc(100% - 60px);
-  }
-
-  .send-button {
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-}
-
-/* Mobile-specific styles */
-@media (max-width: 767px) {
-  .message-input-container {
-    padding: 8px 10px;
-  }
-
-  .message-input {
-    padding: 10px 14px;
-    font-size: 14px;
-    min-height: 40px;
-    width: calc(100% - 50px);
-  }
-
-  .send-button {
-    min-width: 40px;
-    min-height: 40px;
-    width: 40px;
-    height: 40px;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .send-button svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  .send-status {
-    font-size: 12px;
-    padding: 6px 12px;
-    top: -35px;
-  }
-}
+/* Mobile-first styles are now the default */

@@ -1,37 +1,64 @@
 #root {
-  max-width: 1280px;
+  width: 100%;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 0.5rem; /* Smaller padding on mobile */
   min-height: 100vh;
   height: auto;
+}
+
+/* Adjust root container for larger screens */
+@media (min-width: 768px) {
+  #root {
+    max-width: 1280px;
+    padding: 1rem;
+  }
 }
 
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100%;
+  width: 100%;
 }
 
 .app-header {
-  background-color: #2196f3;
+  background-color: var(--primary-color);
   color: white;
-  padding: 1rem;
+  padding: 0.75rem;
   text-align: center;
-  border-radius: 8px 8px 0 0;
-  margin-bottom: 20px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  margin-bottom: 12px;
 }
 
 .app-header h1 {
   margin: 0;
-  font-size: 1.8rem;
+  font-size: 1.4rem;
+}
+
+@media (min-width: 768px) {
+  .app-header {
+    padding: 1rem;
+    margin-bottom: 20px;
+  }
+
+  .app-header h1 {
+    font-size: 1.8rem;
+  }
 }
 
 .app-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
   overflow: visible;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .app-content {
+    gap: 20px;
+  }
 }
 
 .connection-section {
@@ -57,15 +84,39 @@
 }
 
 .app-footer {
-  margin-top: 20px;
+  margin-top: 12px;
   text-align: center;
-  padding: 1rem;
+  padding: 0.75rem;
   background-color: #f5f5f5;
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
   color: #666;
+  font-size: 0.85rem;
 }
 
-/* Responsive adjustments */
+@media (min-width: 768px) {
+  .app-footer {
+    margin-top: 20px;
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Mobile-first layout (default) */
+.messaging-section {
+  flex-direction: column;
+  min-height: 300px;
+}
+
+.message-input-container {
+  width: 100%;
+}
+
+.chat-window-container {
+  width: 100%;
+  min-height: 250px;
+}
+
+/* Responsive adjustments for desktop */
 @media (min-width: 768px) {
   .messaging-section {
     flex-direction: row;
@@ -79,5 +130,6 @@
 
   .chat-window-container {
     width: 60%;
+    min-height: 300px;
   }
 }

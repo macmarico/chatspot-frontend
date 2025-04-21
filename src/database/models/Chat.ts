@@ -2,7 +2,7 @@ import { Model } from '@nozbe/watermelondb';
 import { field, relation, date, text } from '@nozbe/watermelondb/decorators';
 
 // Define message types
-export type MessageType = 'text' | 'clear_chat' | 'typing';
+export type MessageType = 'text' | 'clear_chat' | 'typing' | 'delete_user';
 
 export class Chat extends Model {
   static table = 'chats';

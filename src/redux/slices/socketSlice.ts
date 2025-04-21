@@ -5,7 +5,7 @@ interface Message {
   sender_id?: string;
   receiver_id?: string;
   message?: string;
-  type?: 'text' | 'clear_chat' | 'typing'; // Add message type
+  type?: 'text' | 'clear_chat' | 'typing' | 'delete_user'; // Add message type
   timestamp?: number;
   [key: string]: any;
 }
@@ -32,7 +32,7 @@ interface ConnectSuccessPayload {
 interface SendMessageRequestPayload {
   receiverId: string;
   messageText: string;
-  messageType?: 'text' | 'clear_chat' | 'typing';
+  messageType?: 'text' | 'clear_chat' | 'typing' | 'delete_user';
 }
 
 const initialState: SocketState = {

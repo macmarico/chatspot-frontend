@@ -215,7 +215,7 @@ export const chatDBService = {
     }
   },
 
-  // Delete all messages in a room
+  // Delete all messages in a room and update room info
   clearRoom: async (userId1: string, userId2: string): Promise<boolean> => {
     try {
       const roomId = getRoomId(userId1, userId2);
@@ -224,9 +224,23 @@ export const chatDBService = {
         Q.where('room_id', roomId)
       ).fetch();
 
+      // Find all rooms associated with this conversation
+      const rooms = await roomsCollection.query(
+        Q.where('room_id', roomId)
+      ).fetch();
+
       await database.write(async () => {
+        // Delete all messages
         for (const message of messages) {
           await message.destroyPermanently();
+        }
+
+        // Update all rooms to show they've been cleared
+        for (const room of rooms) {
+          await room.update(roomRecord => {
+            roomRecord.lastMsg = 'Chat cleared'; // Update the last message
+            roomRecord.updated = Date.now(); // Update the timestamp
+          });
         }
       });
 
@@ -237,9 +251,61 @@ export const chatDBService = {
     }
   },
 
-  // Send a clear chat message
+  // Delete a user room completely (remove all messages and room entries)
+  deleteUserRoom: async (userId1: string, userId2: string): Promise<boolean> => {
+    try {
+      const roomId = getRoomId(userId1, userId2);
+
+      // Find all messages in this room
+      const messages = await chatsCollection.query(
+        Q.where('room_id', roomId)
+      ).fetch();
+
+      // Find all rooms associated with this conversation
+      const rooms = await roomsCollection.query(
+        Q.where('room_id', roomId)
+      ).fetch();
+
+      await database.write(async () => {
+        // Delete all messages
+        for (const message of messages) {
+          await message.destroyPermanently();
+        }
+
+        // Delete all room entries
+        for (const room of rooms) {
+          await room.destroyPermanently();
+        }
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Failed to delete user room:', error);
+      return false;
+    }
+  },
+
+  // Send a clear chat message and update room info
   sendClearChatMessage: async (senderId: string, receiverId: string): Promise<Chat> => {
     try {
+      const roomId = getRoomId(senderId, receiverId);
+
+      // Find all rooms associated with this conversation
+      const rooms = await roomsCollection.query(
+        Q.where('room_id', roomId)
+      ).fetch();
+
+      // Update room info in the same transaction
+      await database.write(async () => {
+        // Update all rooms to show they've been cleared
+        for (const room of rooms) {
+          await room.update(roomRecord => {
+            roomRecord.lastMsg = 'Chat cleared'; // Update the last message
+            roomRecord.updated = Date.now(); // Update the timestamp
+          });
+        }
+      });
+
       // Create a special clear_chat message
       return await chatDBService.saveMessage(
         senderId,
