@@ -2,6 +2,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { selectConnected, sendMessageRequest } from '../redux/slices/socketSlice';
 import { selectUser } from '../redux/slices/authSlice';
 import { selectIsUserTyping } from '../redux/slices/typingSlice';
+import { clearCurrentReceiver } from '../redux/slices/chatDBSlice';
 import './ChatWindow.css';
 import { RootState } from '../redux/store';
 import { useState, useEffect, useRef } from 'react';
@@ -40,10 +41,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
   const [clearingChat, setClearingChat] = useState<boolean>(false);
   const [showDeleteUserModal, setShowDeleteUserModal] = useState<boolean>(false);
   const [deletingUser, setDeletingUser] = useState<boolean>(false);
+  const [chatCleared, setChatCleared] = useState<boolean>(false);
   // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Reset chatCleared state if new messages arrive
+    if (messages.length > 0) {
+      setChatCleared(false);
     }
   }, [messages]);
 
@@ -117,6 +124,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
       // The socketSaga will handle clearing the local database when sending a clear_chat message
       // This ensures both sides clear their messages consistently
 
+      // Set chat cleared state to true
+      setChatCleared(true);
+
       // Call the parent component's onClearChat callback if provided
       if (onClearChat) {
         onClearChat();
@@ -156,6 +166,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
 
       // The socketSaga will handle deleting the user room when sending a delete_user message
       // This ensures both sides delete the room consistently
+
+      // Clear the current receiver to close the chat window
+      dispatch(clearCurrentReceiver());
 
       setShowDeleteUserModal(false);
     } catch (error) {
@@ -253,9 +266,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
           <div className="no-messages">
             {!receiverId
               ? 'Select a contact to view messages'
-              : connected
-                ? 'No messages yet. Start the conversation!'
-                : 'Connect to a server to receive messages.'}
+              : !connected
+                ? 'Connect to a server to receive messages.'
+                : chatCleared
+                  ? 'Chat has been cleared'
+                  : 'No messages yet. Start the conversation!'}
           </div>
         )}
       </div>

@@ -16,6 +16,7 @@ import {
 } from '../slices/socketSlice';
 import { selectUser } from '../slices/authSlice';
 import { setUserTyping } from '../slices/typingSlice';
+import { clearCurrentReceiver } from '../slices/chatDBSlice';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { chatDBService } from '../../database/service';
 
@@ -136,6 +137,9 @@ function* connectSaga() {
                     currentUser,
                     event.data.sender_id
                   );
+
+                  // Clear the current receiver to close the chat window
+                  yield put(clearCurrentReceiver());
                   break;
 
                 case 'typing':
@@ -235,6 +239,9 @@ function* sendMessageSaga(action: PayloadAction<{ receiverId: string, messageTex
           if (currentUser) {
             // Delete the user room completely
             yield call(chatDBService.deleteUserRoom, currentUser, receiverId);
+
+            // Clear the current receiver to close the chat window
+            yield put(clearCurrentReceiver());
           }
         } catch (dbError) {
           console.error('Failed to delete user room:', dbError);

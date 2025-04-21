@@ -40,12 +40,16 @@ const chatDBSlice = createSlice({
     },
     setCurrentReceiver: (state, action: PayloadAction<string>) => {
       state.currentReceiverId = action.payload;
+    },
+    clearCurrentReceiver: (state) => {
+      state.currentReceiverId = null;
+      state.currentRoomId = null;
     }
   }
 });
 
 // Export actions
-export const { setInitialized, setCurrentRoom, setCurrentReceiver } = chatDBSlice.actions;
+export const { setInitialized, setCurrentRoom, setCurrentReceiver, clearCurrentReceiver } = chatDBSlice.actions;
 
 // Export selectors
 export const selectDBInitialized = (state: RootState) => state.chatDB.initialized;
