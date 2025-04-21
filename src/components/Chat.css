@@ -2,10 +2,10 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: calc(100vh - 80px); /* Adjust for mobile viewport */
+  height: 100vh; /* Full height on mobile */
   margin: 0 auto;
   background-color: var(--card-background);
-  border-radius: var(--radius-md);
+  border-radius: 0; /* No border radius on mobile for maximum space */
   box-shadow: var(--shadow-md);
   overflow: hidden;
   position: relative;
@@ -15,6 +15,7 @@
   .chat-container {
     max-width: 1200px;
     height: 90vh;
+    border-radius: var(--radius-md); /* Restore border radius on desktop */
   }
 }
 
@@ -118,24 +119,32 @@
   flex-direction: column;
   flex: 1;
   background-color: var(--background-color);
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  border-radius: 0; /* No border radius on mobile */
   overflow: hidden;
   position: relative;
+}
+
+@media (min-width: 768px) {
+  .chat-content {
+    border-radius: 0 0 var(--radius-md) var(--radius-md); /* Restore border radius on desktop */
+  }
 }
 
 .rooms-container {
   width: 100%;
   background-color: var(--card-background);
-  border-right: 1px solid var(--border-color);
+  border-right: none; /* No border on mobile */
   display: flex;
   flex-direction: column;
-  height: 250px; /* Default height for mobile */
+  height: 40vh; /* Use viewport height for better proportions */
   overflow: hidden;
+  z-index: 10; /* Ensure it's above other elements */
 }
 
 @media (min-width: 768px) {
   .rooms-container {
-    height: 300px;
+    height: auto; /* Full height on desktop */
+    border-right: 1px solid var(--border-color); /* Restore border on desktop */
   }
 }
 
@@ -208,13 +217,14 @@
   flex: 1;
   background-color: #F9F9F9; /* Light background */
   position: relative;
-  min-height: 180px; /* Smaller minimum height on mobile */
-  border-left: 1px solid var(--border-color);
+  min-height: 60vh; /* Use viewport height for better proportions */
+  border-left: none; /* No border on mobile */
 }
 
 @media (min-width: 768px) {
   .messages-section {
     min-height: 200px;
+    border-left: 1px solid var(--border-color); /* Restore border on desktop */
   }
 }
 
@@ -355,6 +365,40 @@
   flex-direction: column;
 }
 
+/* Add mobile navigation controls */
+.mobile-nav-controls {
+  display: flex;
+  align-items: center;
+  background-color: var(--primary-color-light);
+  padding: 8px 12px;
+  display: none; /* Hidden by default, shown when a chat is active */
+}
+
+.mobile-nav-controls.active {
+  display: flex;
+}
+
+.back-button {
+  background-color: transparent;
+  border: none;
+  color: var(--primary-color);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  min-height: 40px;
+  cursor: pointer;
+}
+
+.back-button:hover {
+  background-color: rgba(240, 79, 61, 0.1);
+}
+
+.back-button-icon {
+  font-size: 18px;
+}
+
 /* Responsive layout for larger screens */
 @media (min-width: 768px) {
   .chat-content {
@@ -372,5 +416,9 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+  }
+
+  .mobile-nav-controls {
+    display: none !important; /* Always hidden on desktop */
   }
 }

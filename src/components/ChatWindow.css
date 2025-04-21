@@ -4,21 +4,31 @@
   height: 100%;
   background-color: #F9F9F9; /* Light background */
   overflow: hidden;
-  border-radius: 0 0 var(--radius-md) 0;
+  border-radius: 0; /* No border radius on mobile */
+}
+
+@media (min-width: 768px) {
+  .chat-window {
+    border-radius: 0 0 var(--radius-md) 0; /* Restore border radius on desktop */
+  }
 }
 
 .chat-window-header {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  padding: 8px 10px;
   background-color: var(--card-background);
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
 
 @media (min-width: 768px) {
   .chat-window-header {
     padding: 10px 16px;
+    position: relative;
   }
 }
 
@@ -28,17 +38,17 @@
 }
 
 .chat-contact-info .user-avatar {
-  width: 35px;
-  height: 35px;
+  width: 38px;
+  height: 38px;
   font-size: 16px;
-  margin-right: 10px;
+  margin-right: 8px;
   box-shadow: 0 2px 4px rgba(240, 79, 61, 0.2);
 }
 
 @media (min-width: 768px) {
   .chat-contact-info .user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     font-size: 18px;
     margin-right: 15px;
   }
@@ -47,7 +57,7 @@
 .chat-header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 @media (min-width: 768px) {
@@ -123,13 +133,15 @@
 .clear-chat-btn, .delete-user-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   background-color: transparent;
   border-radius: var(--radius-sm);
-  padding: 5px 8px;
+  padding: 5px;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s;
-  min-height: 32px;
+  min-height: 36px;
+  min-width: 36px; /* Square buttons on mobile */
 }
 
 .clear-chat-btn {
@@ -147,6 +159,7 @@
     padding: 5px 10px;
     font-size: 13px;
     min-height: 36px;
+    min-width: auto; /* Reset min-width on desktop */
   }
 }
 
@@ -186,11 +199,13 @@
   display: flex;
   flex-direction: column;
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  padding-bottom: 20px; /* Extra padding at the bottom for better scrolling */
 }
 
 @media (min-width: 768px) {
   .messages-container {
     padding: 16px;
+    padding-bottom: 30px;
   }
 }
 
@@ -201,7 +216,7 @@
 }
 
 .message {
-  max-width: 85%; /* Wider for mobile */
+  max-width: 90%; /* Even wider for mobile */
   margin: 2px 0;
 }
 
@@ -245,15 +260,15 @@
 }
 
 .message-content {
-  padding: 5px 8px 7px;
-  border-radius: 7.5px;
+  padding: 8px 10px 10px;
+  border-radius: 10px;
   position: relative;
   box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
 }
 
 @media (min-width: 768px) {
   .message-content {
-    padding: 6px 10px 8px;
+    padding: 8px 12px 10px;
   }
 }
 
@@ -270,18 +285,18 @@
 }
 
 .message-content p {
-  margin: 0 0 14px 0;
+  margin: 0 0 16px 0;
   word-wrap: break-word;
-  font-size: 13.5px;
-  line-height: 18px;
+  font-size: 15px;
+  line-height: 20px;
   color: var(--text-color);
 }
 
 @media (min-width: 768px) {
   .message-content p {
     margin: 0 0 16px 0;
-    font-size: 14.2px;
-    line-height: 19px;
+    font-size: 15px;
+    line-height: 20px;
   }
 }
 
@@ -289,7 +304,7 @@
   position: absolute;
   bottom: 3px;
   right: 6px;
-  font-size: 0.6em;
+  font-size: 0.7em;
   color: var(--text-secondary);
 }
 
@@ -297,7 +312,7 @@
   .message-time {
     bottom: 4px;
     right: 7px;
-    font-size: 0.65em;
+    font-size: 0.7em;
   }
 }
 
@@ -377,11 +392,11 @@
   height: 100%;
   color: var(--text-secondary);
   text-align: center;
-  padding: 15px;
+  padding: 20px;
   background-color: rgba(255, 255, 255, 0.6);
   border-radius: var(--radius-md);
   margin: 10px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 @media (min-width: 768px) {

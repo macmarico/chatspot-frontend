@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { selectIsAuthenticated, selectAuthToken, selectUser, logout } from '../redux/slices/authSlice';
 import { connectRequest, disconnectRequest } from '../redux/slices/socketSlice';
-import { setCurrentRoom, setCurrentReceiver, selectDBInitialized, selectCurrentRoomId, selectCurrentReceiverId, initializeDatabase, setInitialized } from '../redux/slices/chatDBSlice';
+import { setCurrentRoom, setCurrentReceiver, clearCurrentReceiver, selectDBInitialized, selectCurrentRoomId, selectCurrentReceiverId, initializeDatabase, setInitialized } from '../redux/slices/chatDBSlice';
 import { chatDBService } from '../database/service';
 import { useWatermelonObservable } from '../hooks/useWatermelonObservable';
 import MessageInput from './MessageInput';
@@ -38,6 +38,26 @@ const Chat: React.FC = () => {
   );
 
   const [showNewChatModal, setShowNewChatModal] = useState<boolean>(false);
+  const [isMobileView, setIsMobileView] = useState<boolean>(window.innerWidth < 768);
+  const [showRoomsList, setShowRoomsList] = useState<boolean>(true);
+  const roomsContainerRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Handle window resize to detect mobile/desktop view
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobileView(mobile);
+
+      // If switching to desktop view, always show both panels
+      if (!mobile) {
+        setShowRoomsList(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Handle logout
   const handleLogout = () => {
@@ -81,6 +101,11 @@ const Chat: React.FC = () => {
 
   const handleRoomSelect = (userId: string) => {
     dispatch(setCurrentReceiver(userId));
+
+    // On mobile, hide the rooms list when a chat is selected
+    if (isMobileView) {
+      setShowRoomsList(false);
+    }
   };
 
   const handleNewChat = () => {
@@ -96,7 +121,17 @@ const Chat: React.FC = () => {
     if (userId !== currentUser) {
       dispatch(setCurrentReceiver(userId));
       setShowNewChatModal(false);
+
+      // On mobile, hide the rooms list when a chat is started
+      if (isMobileView) {
+        setShowRoomsList(false);
+      }
     }
+  };
+
+  // Handle back button click on mobile
+  const handleBackToRooms = () => {
+    setShowRoomsList(true);
   };
 
   return (
@@ -112,7 +147,12 @@ const Chat: React.FC = () => {
       </div>
 
       <div className="chat-content">
-        <div className="rooms-container">
+        {/* Rooms container - conditionally shown on mobile */}
+        <div
+          className="rooms-container"
+          style={{ display: isMobileView && !showRoomsList ? 'none' : 'flex' }}
+          ref={roomsContainerRef}
+        >
           <div className="rooms-header">
             <h3>Chats</h3>
             <button className="new-chat-button" onClick={handleNewChat}>
@@ -126,7 +166,21 @@ const Chat: React.FC = () => {
           />
         </div>
 
-        <div className="messages-section">
+        {/* Messages section - conditionally shown on mobile */}
+        <div
+          className="messages-section"
+          style={{ display: isMobileView && showRoomsList ? 'none' : 'flex' }}
+          ref={messagesContainerRef}
+        >
+          {/* Mobile back button - only shown when a chat is active on mobile */}
+          {isMobileView && selectedReceiverId && (
+            <div className={`mobile-nav-controls ${!showRoomsList ? 'active' : ''}`}>
+              <button className="back-button" onClick={handleBackToRooms}>
+                <span className="back-button-icon">←</span> Back to Chats
+              </button>
+            </div>
+          )}
+
           {selectedReceiverId ? (
             <>
               <div className="chat-window-container">

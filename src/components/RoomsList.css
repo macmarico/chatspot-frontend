@@ -76,15 +76,17 @@
 .room-item {
   display: flex;
   align-items: center;
-  padding: 10px 12px;
+  padding: 12px;
   cursor: pointer;
   transition: background-color 0.2s;
   border-bottom: 1px solid var(--border-color);
+  min-height: 72px; /* Ensure touch targets are large enough */
 }
 
 @media (min-width: 768px) {
   .room-item {
     padding: 12px 15px;
+    min-height: 76px;
   }
 }
 
@@ -94,7 +96,27 @@
 
 .room-item.selected {
   background-color: #FEF5F4;
-  border-left: 3px solid var(--primary-color);
+  border-left: 4px solid var(--primary-color);
+  position: relative;
+}
+
+.room-item.selected::after {
+  content: '';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .room-item.selected::after {
+    display: none; /* Hide the indicator dot on desktop */
+  }
 }
 
 .room-item.self-chat {
@@ -109,16 +131,16 @@
 }
 
 .room-user-info .user-avatar {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   font-size: 18px;
   box-shadow: var(--shadow-sm);
 }
 
 @media (min-width: 768px) {
   .room-user-info .user-avatar {
-    width: 49px;
-    height: 49px;
+    width: 50px;
+    height: 50px;
     font-size: 20px;
   }
 }
@@ -137,7 +159,7 @@
 }
 
 .room-time {
-  font-size: 0.7em;
+  font-size: 0.75em;
   color: var(--primary-color);
   white-space: nowrap;
   margin-left: 6px;
@@ -146,24 +168,24 @@
 
 @media (min-width: 768px) {
   .room-time {
-    font-size: 0.75em;
+    font-size: 0.8em;
     margin-left: 8px;
   }
 }
 
 .room-last-message {
   color: var(--text-secondary);
-  font-size: 0.8em;
+  font-size: 0.85em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-top: 3px;
-  max-width: 200px;
+  margin-top: 4px;
+  max-width: 220px;
 }
 
 @media (min-width: 768px) {
   .room-last-message {
-    font-size: 0.85em;
+    font-size: 0.9em;
     max-width: 250px;
   }
 }
@@ -171,12 +193,13 @@
 /* Mobile-first styles are now the default */
 
 .room-user-info .user-name {
-  font-size: 0.95em;
+  font-size: 1em;
+  font-weight: 600;
 }
 
 @media (min-width: 768px) {
   .room-user-info .user-name {
-    font-size: 1em;
+    font-size: 1.05em;
   }
 }
 
