@@ -50,7 +50,12 @@ const MessageInput: React.FC<MessageInputProps> = ({ receiverId }) => {
       return;
     }
 
-    dispatch(sendMessageRequest({ receiverId, messageText: message.trim() }));
+    // Send as a text message type
+    dispatch(sendMessageRequest({
+      receiverId,
+      messageText: message.trim(),
+      messageType: 'text'
+    }));
     setMessage('');
 
     // Focus back on the input after sending
@@ -61,10 +66,26 @@ const MessageInput: React.FC<MessageInputProps> = ({ receiverId }) => {
     }
   };
 
-  // Handle textarea height adjustment
+  // Typing indicator state
+  const [isTyping, setIsTyping] = useState<boolean>(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Send typing indicator
+  const sendTypingIndicator = (typing: boolean) => {
+    if (connected && receiverId) {
+      dispatch(sendMessageRequest({
+        receiverId,
+        messageText: typing ? 'typing' : 'stopped_typing',
+        messageType: 'typing'
+      }));
+    }
+  };
+
+  // Handle textarea height adjustment and typing indicator
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const target = e.target;
-    setMessage(target.value);
+    const newValue = target.value;
+    setMessage(newValue);
 
     // Reset height to auto to properly calculate the new height
     target.style.height = 'auto';
@@ -74,6 +95,30 @@ const MessageInput: React.FC<MessageInputProps> = ({ receiverId }) => {
     const minHeight = window.innerWidth <= 767 ? 40 : 44;
     const newHeight = Math.max(minHeight, Math.min(target.scrollHeight, 120));
     target.style.height = `${newHeight}px`;
+
+    // Handle typing indicator
+    if (newValue.trim() && !isTyping) {
+      // User started typing
+      setIsTyping(true);
+      sendTypingIndicator(true);
+    } else if (!newValue.trim() && isTyping) {
+      // User stopped typing
+      setIsTyping(false);
+      sendTypingIndicator(false);
+    }
+
+    // Reset typing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set a timeout to stop the typing indicator after 3 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      if (isTyping) {
+        setIsTyping(false);
+        sendTypingIndicator(false);
+      }
+    }, 3000);
   };
 
   // Set initial height and handle window resize
@@ -94,8 +139,17 @@ const MessageInput: React.FC<MessageInputProps> = ({ receiverId }) => {
     // Clean up
     return () => {
       window.removeEventListener('resize', setInitialHeight);
+
+      // Clear typing timeout and send stopped typing on unmount
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      if (isTyping && connected && receiverId) {
+        sendTypingIndicator(false);
+      }
     };
-  }, []);
+  }, [isTyping, connected, receiverId]);
 
   // Handle Enter key to submit (Shift+Enter for new line)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

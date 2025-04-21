@@ -39,6 +39,39 @@
   font-size: 13px;
   color: #F04F3D;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.typing-text {
+  margin-right: 2px;
+}
+
+.header-typing-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 15px;
+}
+
+.header-typing-indicator span {
+  height: 4px;
+  width: 4px;
+  background-color: #F04F3D;
+  border-radius: 50%;
+  display: inline-block;
+  margin: 0 1px;
+  opacity: 0.8;
+  animation: typing 1.4s infinite both;
+}
+
+.header-typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.header-typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
 }
 
 .clear-chat-btn {
@@ -156,6 +189,75 @@
   right: 7px;
   font-size: 0.65em;
   color: #8c8c8c;
+}
+
+/* System messages (like clear chat) */
+.message-system {
+  align-self: center;
+  max-width: 85%;
+  margin: 8px 0;
+}
+
+.message-content.system {
+  background-color: #f0f0f0;
+  color: #666;
+  text-align: center;
+  border: none;
+  border-radius: 15px;
+  padding: 5px 12px;
+}
+
+.message-content.system p {
+  margin-bottom: 12px;
+  font-style: italic;
+  font-size: 13px;
+}
+
+/* Typing indicator */
+.message-typing {
+  align-self: flex-start;
+  margin: 2px 0;
+}
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  background-color: #f1f1f1;
+  border-radius: 15px;
+  padding: 8px 12px;
+  width: 50px;
+  justify-content: center;
+}
+
+.typing-indicator span {
+  height: 8px;
+  width: 8px;
+  background-color: #999;
+  border-radius: 50%;
+  display: inline-block;
+  margin: 0 2px;
+  opacity: 0.6;
+  animation: typing 1.4s infinite both;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
 
 .no-messages {

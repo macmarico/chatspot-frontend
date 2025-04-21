@@ -1,6 +1,6 @@
 import { database, getRoomId } from './config';
 import { Q } from '@nozbe/watermelondb';
-import { Chat } from './models/Chat';
+import { Chat, MessageType } from './models/Chat';
 import { Room } from './models/Room';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -60,8 +60,14 @@ export const chatDBService = {
     }
   },
 
-  // Save a new message
-  saveMessage: async (senderId: string, receiverId: string, message: string, isMine: boolean = true): Promise<Chat> => {
+  // Save a new message with type
+  saveMessage: async (
+    senderId: string,
+    receiverId: string,
+    message: string,
+    isMine: boolean = true,
+    type: MessageType = 'text' // Default type is text
+  ): Promise<Chat> => {
     try {
       const roomId = getRoomId(senderId, receiverId);
       const timestamp = Date.now();
@@ -74,29 +80,33 @@ export const chatDBService = {
           chat.senderId = senderId;
           chat.receiverId = receiverId;
           chat.message = message;
+          chat.type = type;
           chat.timestamp = timestamp;
           chat.status = 'sent';
           chat.isMine = isMine;
         });
 
-        // Update or create the room
-        const rooms = await roomsCollection.query(
-          Q.where('room_id', roomId),
-          Q.where('user_id', isMine ? receiverId : senderId)
-        ).fetch();
+        // Only update room for regular text messages
+        if (type === 'text') {
+          // Update or create the room
+          const rooms = await roomsCollection.query(
+            Q.where('room_id', roomId),
+            Q.where('user_id', isMine ? receiverId : senderId)
+          ).fetch();
 
-        if (rooms.length > 0) {
-          await rooms[0].update(room => {
-            room.lastMsg = message;
-            room.updated = timestamp;
-          });
-        } else {
-          await roomsCollection.create(room => {
-            room.roomId = roomId;
-            room.userId = isMine ? receiverId : senderId;
-            room.lastMsg = message;
-            room.updated = timestamp;
-          });
+          if (rooms.length > 0) {
+            await rooms[0].update(room => {
+              room.lastMsg = message;
+              room.updated = timestamp;
+            });
+          } else {
+            await roomsCollection.create(room => {
+              room.roomId = roomId;
+              room.userId = isMine ? receiverId : senderId;
+              room.lastMsg = message;
+              room.updated = timestamp;
+            });
+          }
         }
 
         return chatMessage;
@@ -224,6 +234,45 @@ export const chatDBService = {
     } catch (error) {
       console.error('Failed to clear room:', error);
       return false;
+    }
+  },
+
+  // Send a clear chat message
+  sendClearChatMessage: async (senderId: string, receiverId: string): Promise<Chat> => {
+    try {
+      // Create a special clear_chat message
+      return await chatDBService.saveMessage(
+        senderId,
+        receiverId,
+        'Chat cleared',
+        true,
+        'clear_chat'
+      );
+    } catch (error) {
+      console.error('Failed to send clear chat message:', error);
+      throw error;
+    }
+  },
+
+  // Send a typing indicator message - doesn't actually save to database
+  sendTypingIndicator: async (senderId: string, receiverId: string, isTyping: boolean): Promise<any> => {
+    try {
+      // Just return a mock object with the typing information
+      // We don't want to save typing indicators to the database
+      return {
+        id: 'typing_' + Date.now(),
+        roomId: getRoomId(senderId, receiverId),
+        senderId: senderId,
+        receiverId: receiverId,
+        message: isTyping ? 'typing' : 'stopped_typing',
+        type: 'typing',
+        timestamp: Date.now(),
+        status: 'sent',
+        isMine: true
+      };
+    } catch (error) {
+      console.error('Failed to send typing indicator:', error);
+      throw error;
     }
   }
 };

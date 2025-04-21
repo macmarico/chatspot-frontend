@@ -15,6 +15,7 @@ import {
   selectAuthToken
 } from '../slices/socketSlice';
 import { selectUser } from '../slices/authSlice';
+import { setUserTyping } from '../slices/typingSlice';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { chatDBService } from '../../database/service';
 
@@ -39,8 +40,12 @@ function createSocketChannel(socket: Socket) {
       emit({ type: 'error', error });
     });
 
-    // Handle message event
+    // Handle message event - now with message types
     socket.on('message', (data) => {
+      // Ensure data has a type field, default to 'text' if not specified
+      if (!data.type) {
+        data.type = 'text';
+      }
       emit({ type: 'message', data });
     });
 
@@ -96,31 +101,61 @@ function* connectSaga() {
           console.error('Connection error:', event.error);
           break;
         case 'message':
-          yield put(messageReceived(event.data));
           console.log('📩 Message received:', event.data);
 
-          // Handle received message
+          // Handle received message based on type
           try {
             const currentUser: string = yield select(selectUser);
             if (currentUser && event.data.sender_id && event.data.message) {
-              // Check if it's a special clear chat message
-              if (event.data.message === '__CLEAR_CHAT__') {
-                console.log('Received clear chat request from', event.data.sender_id);
-                // Clear the chat in the local database
-                yield call(
-                  chatDBService.clearRoom,
-                  currentUser,
-                  event.data.sender_id
-                );
-              } else {
-                // It's a regular message, save it to the database
-                yield call(
-                  chatDBService.saveMessage,
-                  event.data.sender_id,
-                  currentUser,
-                  event.data.message,
-                  false
-                );
+              // Check message type
+              const messageType = event.data.type || 'text';
+
+              switch (messageType) {
+                case 'clear_chat':
+                  console.log('Received clear chat request from', event.data.sender_id);
+                  // Clear the chat in the local database
+                  yield call(
+                    chatDBService.clearRoom,
+                    currentUser,
+                    event.data.sender_id
+                  );
+
+                  // // Add the clear_chat message to the UI
+                  // yield put(messageReceived(event.data));
+
+                  // // Save the clear_chat message to database
+                  // yield call(
+                  //   chatDBService.saveMessage,
+                  //   event.data.sender_id,
+                  //   currentUser,
+                  //   event.data.message,
+                  //   false,
+                  //   'clear_chat'
+                  // );
+                  break;
+
+                case 'typing':
+                  // Handle typing indicator - update typing state in Redux
+                  console.log('Typing indicator from', event.data.sender_id);
+                  // Use the dedicated typing slice instead of messageReceived
+                  yield put(setUserTyping({
+                    userId: event.data.sender_id,
+                    isTyping: event.data.message === 'typing'
+                  }));
+                  break;
+
+                case 'text':
+                default:
+                  // Regular text message - save to database and dispatch to UI
+                  yield call(
+                    chatDBService.saveMessage,
+                    event.data.sender_id,
+                    currentUser,
+                    event.data.message,
+                    false,
+                    'text'
+                  );
+                  break;
               }
             }
           } catch (dbError) {
@@ -142,50 +177,82 @@ function* connectSaga() {
 }
 
 // Saga to handle sending messages
-function* sendMessageSaga(action: PayloadAction<{ receiverId: string, messageText: string }>) {
+function* sendMessageSaga(action: PayloadAction<{ receiverId: string, messageText: string, messageType?: 'text' | 'clear_chat' | 'typing' }>) {
   try {
-    const { receiverId, messageText } = action.payload;
+    const { receiverId, messageText, messageType = 'text' } = action.payload;
 
     if (!socket) {
       throw new Error('Cannot send message: Not connected');
     }
 
-    // Create message object
+    // Create message object with type
     const messageObj = {
       receiver_id: receiverId,
       message: messageText,
+      type: messageType,
       // Add metadata for UI display
       sent_by_me: true,
       timestamp: Date.now()
     };
 
-    // Send the message
+    // Send the message with type field
     socket.emit('message', {
       receiver_id: receiverId,
       message: messageText,
+      type: messageType
     });
 
-    // Add the sent message to our messages list (except for special messages)
-    if (messageText !== '__CLEAR_CHAT__') {
-      yield put(messageReceived(messageObj));
+    // Handle different message types
+    switch (messageType) {
+      case 'clear_chat':
+        console.log('Sending clear chat request to', receiverId);
+        try {
+          const currentUser: string = yield select(selectUser);
+          if (currentUser) {
+            // Clear local messages
+            yield call(chatDBService.clearRoom, currentUser, receiverId);
+          }
+        } catch (dbError) {
+          console.error('Failed to clear chat:', dbError);
+        }
+        break;
 
-      // Save regular message to database
-      try {
+      case 'typing':
+        // Don't save typing indicators to database or add to messages list
+        console.log('Sending typing indicator to', receiverId);
+        // Update our own typing state for consistency
         const currentUser: string = yield select(selectUser);
         if (currentUser) {
-          yield call(
-            chatDBService.saveMessage,
-            currentUser,
-            receiverId,
-            messageText,
-            true
-          );
+          yield put(setUserTyping({
+            userId: currentUser,
+            isTyping: messageText === 'typing'
+          }));
         }
-      } catch (dbError) {
-        console.error('Failed to save message to database:', dbError);
-      }
-    } else {
-      console.log('Sending clear chat request to', receiverId);
+        // No need to save to database or dispatch to messageReceived
+        break;
+
+      case 'text':
+      default:
+        // Add regular text message to our messages list
+        // yield put(messageReceived(messageObj));
+
+        // Save regular message to database
+        try {
+          const currentUser: string = yield select(selectUser);
+          if (currentUser) {
+            yield call(
+              chatDBService.saveMessage,
+              currentUser,
+              receiverId,
+              messageText,
+              true,
+              'text'
+            );
+          }
+        } catch (dbError) {
+          console.error('Failed to save message to database:', dbError);
+        }
+        break;
     }
 
     // Dispatch success action

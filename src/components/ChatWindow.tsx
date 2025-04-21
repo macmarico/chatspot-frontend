@@ -1,12 +1,13 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { selectConnected, sendMessageRequest } from '../redux/slices/socketSlice';
 import { selectUser } from '../redux/slices/authSlice';
+import { selectIsUserTyping } from '../redux/slices/typingSlice';
 import './ChatWindow.css';
 import { RootState } from '../redux/store';
 import { useState, useEffect, useRef } from 'react';
 import UserInfo from './UserInfo';
 import ClearChatModal from './ClearChatModal';
-import { chatDBService } from '../database/service';
+// We don't need to import chatDBService anymore as the socketSaga handles clearing
 
 interface Message {
   id: string;
@@ -14,6 +15,7 @@ interface Message {
   sender_id: string;
   receiver_id: string;
   message: string;
+  type?: 'text' | 'clear_chat' | 'typing'; // Add message type
   timestamp: number;
   status: string;
   is_mine: boolean;
@@ -35,13 +37,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
 
   const [showClearModal, setShowClearModal] = useState<boolean>(false);
   const [clearingChat, setClearingChat] = useState<boolean>(false);
-
   // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  // Get typing status from Redux
+  const isTyping = receiverId ? useSelector((state: RootState) =>
+    selectIsUserTyping(state, receiverId)
+  ) : false;
 
   // Format timestamp if available
   const formatTime = (timestamp: number): string => {
@@ -98,14 +104,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
     try {
       setClearingChat(true);
 
-      // Clear messages in local database
-      await chatDBService.clearRoom(currentUser, receiverId);
-
-      // Send a special message to notify the other user to clear their chat too
+      // First, send a clear_chat type message to notify the other user to clear their chat
       dispatch(sendMessageRequest({
         receiverId,
-        messageText: '__CLEAR_CHAT__' // Special message type
+        messageText: 'Chat cleared',
+        messageType: 'clear_chat' // Use the new message type system
       }));
+
+      // The socketSaga will handle clearing the local database when sending a clear_chat message
+      // This ensures both sides clear their messages consistently
 
       // Call the parent component's onClearChat callback if provided
       if (onClearChat) {
@@ -128,7 +135,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
             <UserInfo userId={receiverId} className="chat-contact-info" />
             <div className="chat-header-actions">
               <span className="chat-contact-status">
-                {connected ? 'Online' : 'Offline'}
+                {connected ? (
+                  isTyping ? (
+                    <>
+                      <span className="typing-text">Typing</span>
+                      <span className="header-typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                      </span>
+                    </>
+                  ) : 'Online'
+                ) : 'Offline'}
               </span>
               <button
                 className="clear-chat-btn"
@@ -159,12 +177,25 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
                       <span>{getMessageDate(message.timestamp)}</span>
                     </div>
                   )}
-                  <div className={`message ${message.is_mine ? 'sent' : 'received'}`}>
-                    <div className="message-content">
-                      <p>{message.message}</p>
-                      <span className="message-time">{formatTime(message.timestamp)}</span>
+                  {message.type === 'clear_chat' ? (
+                    <div className="message-system">
+                      <div className="message-content system">
+                        <p>Chat cleared by {message.is_mine ? 'you' : message.sender_id}</p>
+                        <span className="message-time">{formatTime(message.timestamp)}</span>
+                      </div>
                     </div>
-                  </div>
+                  ) : message.type === 'typing' ? (
+                    // Don't show typing messages in the chat window
+                    null
+                  ) : (
+                    // Regular text message
+                    <div className={`message ${message.is_mine ? 'sent' : 'received'}`}>
+                      <div className="message-content">
+                        <p>{message.message}</p>
+                        <span className="message-time">{formatTime(message.timestamp)}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

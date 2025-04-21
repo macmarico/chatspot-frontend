@@ -3,6 +3,7 @@ import createSagaMiddleware from 'redux-saga';
 import socketReducer from './slices/socketSlice';
 import authReducer from './slices/authSlice';
 import chatDBReducer from './slices/chatDBSlice';
+import typingReducer from './slices/typingSlice';
 import rootSaga from './sagas/rootSaga';
 
 // Create saga middleware
@@ -14,6 +15,7 @@ const store = configureStore({
     socket: socketReducer,
     auth: authReducer,
     chatDB: chatDBReducer,
+    typing: typingReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

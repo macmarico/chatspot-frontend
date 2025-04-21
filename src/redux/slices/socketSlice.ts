@@ -5,6 +5,7 @@ interface Message {
   sender_id?: string;
   receiver_id?: string;
   message?: string;
+  type?: 'text' | 'clear_chat' | 'typing'; // Add message type
   timestamp?: number;
   [key: string]: any;
 }
@@ -31,6 +32,7 @@ interface ConnectSuccessPayload {
 interface SendMessageRequestPayload {
   receiverId: string;
   messageText: string;
+  messageType?: 'text' | 'clear_chat' | 'typing';
 }
 
 const initialState: SocketState = {
@@ -90,8 +92,8 @@ const socketSlice = createSlice({
       state.error = action.payload;
     },
     messageReceived: (state, action: PayloadAction<Message>) => {
-      // Don't add special messages to the messages list
-      if (action.payload.message !== '__CLEAR_CHAT__') {
+      // Don't add typing indicators or old-style clear chat messages to the messages list
+      if (action.payload.type !== 'typing' && action.payload.message !== '__CLEAR_CHAT__') {
         state.messages.push(action.payload);
       }
     },
