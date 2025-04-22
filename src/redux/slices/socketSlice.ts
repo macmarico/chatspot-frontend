@@ -35,12 +35,15 @@ interface SendMessageRequestPayload {
   messageType?: 'text' | 'clear_chat' | 'typing' | 'delete_user';
 }
 
+// Get WebSocket URL from environment variables
+const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000';
+
 const initialState: SocketState = {
   socket: null,
   connected: false,
   connecting: false,
   error: null,
-  serverUrl: 'ws://localhost:3000',
+  serverUrl: WS_URL,
   authToken: '',
   messages: []
 };
