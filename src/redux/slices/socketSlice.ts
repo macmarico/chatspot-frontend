@@ -1,9 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../store';
+import { getWsUrl } from '../../utils/env';
 
 interface Message {
-  sender_id?: string;
-  receiver_id?: string;
+  sender_id?: string; // Kept for backward compatibility
+  receiver_id?: string; // Kept for backward compatibility
+  sender_username?: string;
+  receiver_username?: string;
   message?: string;
   type?: 'text' | 'clear_chat' | 'typing' | 'delete_user'; // Add message type
   timestamp?: number;
@@ -30,13 +33,13 @@ interface ConnectSuccessPayload {
 }
 
 interface SendMessageRequestPayload {
-  receiverId: string;
+  receiverUsername: string;
   messageText: string;
   messageType?: 'text' | 'clear_chat' | 'typing' | 'delete_user';
 }
 
-// Get WebSocket URL from environment variables
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000';
+// Get WebSocket URL from environment utility
+const WS_URL = getWsUrl();
 
 const initialState: SocketState = {
   socket: null,

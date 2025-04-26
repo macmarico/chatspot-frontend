@@ -14,8 +14,8 @@ import DeleteUserModal from './DeleteUserModal';
 interface Message {
   id: string;
   room_id: string;
-  sender_id: string;
-  receiver_id: string;
+  sender_username: string;
+  receiver_username: string;
   message: string;
   type?: 'text' | 'clear_chat' | 'typing' | 'delete_user'; // Add message type
   timestamp: number;
@@ -27,11 +27,11 @@ type MessageRecord = Record<string, any> | Message;
 
 interface ChatWindowProps {
   messages: MessageRecord[];
-  receiverId: string | null;
+  receiverUsername: string | null;
   onClearChat?: () => void;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = null, onClearChat }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverUsername = null, onClearChat }) => {
   const dispatch = useDispatch();
   const connected = useSelector(selectConnected);
   const currentUser = useSelector(selectUser);
@@ -55,8 +55,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
   }, [messages]);
 
   // Get typing status from Redux
-  const isTyping = receiverId ? useSelector((state: RootState) =>
-    selectIsUserTyping(state, receiverId)
+  const isTyping = receiverUsername ? useSelector((state: RootState) =>
+    selectIsUserTyping(state, receiverUsername)
   ) : false;
 
   // Format timestamp if available
@@ -109,14 +109,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
 
   // Handle clearing the chat
   const handleClearChat = async () => {
-    if (!currentUser || !receiverId) return;
+    if (!currentUser || !receiverUsername) return;
 
     try {
       setClearingChat(true);
 
       // First, send a clear_chat type message to notify the other user to clear their chat
       dispatch(sendMessageRequest({
-        receiverId,
+        receiverUsername,
         messageText: 'Chat cleared',
         messageType: 'clear_chat' // Use the new message type system
       }));
@@ -152,14 +152,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
 
   // Handle deleting the user
   const handleDeleteUser = async () => {
-    if (!currentUser || !receiverId) return;
+    if (!currentUser || !receiverUsername) return;
 
     try {
       setDeletingUser(true);
 
       // Send a delete_user type message to notify the other user to delete the room
       dispatch(sendMessageRequest({
-        receiverId,
+        receiverUsername,
         messageText: 'User deleted',
         messageType: 'delete_user'
       }));
@@ -181,9 +181,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
   return (
     <div className="chat-window">
       <div className="chat-window-header">
-        {receiverId && (
+        {receiverUsername && (
           <>
-            <UserInfo userId={receiverId} className="chat-contact-info" />
+            <UserInfo userId={receiverUsername} className="chat-contact-info" />
             <div className="chat-header-actions">
               <span className="chat-contact-status">
                 {connected ? (
@@ -241,7 +241,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
                   {message.type === 'clear_chat' ? (
                     <div className="message-system">
                       <div className="message-content system">
-                        <p>Chat cleared by {message.is_mine ? 'you' : message.sender_id}</p>
+                        <p>Chat cleared by {message.is_mine ? 'you' : message.sender_username}</p>
                         <span className="message-time">{formatTime(message.timestamp)}</span>
                       </div>
                     </div>
@@ -264,7 +264,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
           </div>
         ) : (
           <div className="no-messages">
-            {!receiverId
+            {!receiverUsername
               ? 'Select a contact to view messages'
               : !connected
                 ? 'Connect to a server to receive messages.'
@@ -288,7 +288,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverId = nul
           onClose={handleCloseDeleteUserModal}
           onConfirm={handleDeleteUser}
           loading={deletingUser}
-          username={receiverId || undefined}
+          username={receiverUsername || undefined}
         />
       )}
     </div>

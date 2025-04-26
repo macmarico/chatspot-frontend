@@ -6,7 +6,7 @@ import './NewChatModal.css';
 
 interface NewChatModalProps {
   onClose: () => void;
-  onStartChat: (userId: string) => void;
+  onStartChat: (username: string) => void;
 }
 
 const NewChatModal: React.FC<NewChatModalProps> = ({ onClose, onStartChat }) => {
@@ -36,9 +36,8 @@ const NewChatModal: React.FC<NewChatModalProps> = ({ onClose, onStartChat }) => 
     try {
       setLoading(true);
       setError('');
-      // Resolve username to userId using the API
-      const userId = await userService.resolveUsername(trimmedUsername);
-      onStartChat(userId);
+      // No need to resolve username to userId anymore
+      onStartChat(trimmedUsername);
     } catch (err: any) {
       setError(err.toString() || 'User not found');
     } finally {

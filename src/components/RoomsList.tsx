@@ -44,7 +44,7 @@ const formatDistanceToNow = (date: Date, options?: { addSuffix?: boolean }): str
 interface Room {
   id: string;
   room_id: string;
-  user_id: string;
+  username: string;
   last_msg: string;
   updated: number;
 }
@@ -53,11 +53,11 @@ type RoomRecord = Record<string, any> | Room;
 
 interface RoomsListProps {
   rooms: RoomRecord[];
-  onRoomSelect: (userId: string) => void;
-  selectedUserId: string | null;
+  onRoomSelect: (username: string) => void;
+  selectedUsername: string | null;
 }
 
-const RoomsList: React.FC<RoomsListProps> = ({ rooms = [], onRoomSelect, selectedUserId = null }) => {
+const RoomsList: React.FC<RoomsListProps> = ({ rooms = [], onRoomSelect, selectedUsername = null }) => {
   const currentUser = useSelector(selectUser);
 
   // Format timestamp to a readable date/time
@@ -100,12 +100,12 @@ const RoomsList: React.FC<RoomsListProps> = ({ rooms = [], onRoomSelect, selecte
           {rooms.map((room) => (
             <li
               key={room.room_id}
-              className={`room-item ${room.user_id === selectedUserId ? 'selected' : ''} ${room.user_id === currentUser ? 'self-chat' : ''}`}
-              onClick={() => room.user_id !== currentUser && onRoomSelect(room.user_id)}
+              className={`room-item ${room.username === selectedUsername ? 'selected' : ''} ${room.username === currentUser ? 'self-chat' : ''}`}
+              onClick={() => room.username !== currentUser && onRoomSelect(room.username)}
             >
               <div className="room-details">
                 <div className="room-header">
-                  <UserInfo userId={room.user_id} className="room-user-info" />
+                  <UserInfo userId={room.username} className="room-user-info" />
                   <span className="room-time">{formatTime(room.updated)}</span>
                 </div>
                 <div className="room-last-message">

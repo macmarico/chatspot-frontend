@@ -47,7 +47,7 @@ export const chatDBService = {
       const newRoom = await database.write(async () => {
         return await roomsCollection.create(room => {
           room.roomId = roomId;
-          room.userId = otherUserId;
+          room.username = otherUserId;
           room.lastMsg = '';
           room.updated = Date.now();
         });
@@ -62,14 +62,14 @@ export const chatDBService = {
 
   // Save a new message with type
   saveMessage: async (
-    senderId: string,
-    receiverId: string,
+    sender: string,
+    receiver: string,
     message: string,
     isMine: boolean = true,
     type: MessageType = 'text' // Default type is text
   ): Promise<Chat> => {
     try {
-      const roomId = getRoomId(senderId, receiverId);
+      const roomId = getRoomId(sender, receiver);
       const timestamp = Date.now();
 
       // Use database.write to perform all operations in a single transaction
@@ -77,8 +77,8 @@ export const chatDBService = {
         // Create the message
         const chatMessage = await chatsCollection.create(chat => {
           chat.roomId = roomId;
-          chat.senderId = senderId;
-          chat.receiverId = receiverId;
+          chat.senderUsername = sender;
+          chat.receiverUsername = receiver;
           chat.message = message;
           chat.type = type;
           chat.timestamp = timestamp;
@@ -91,7 +91,7 @@ export const chatDBService = {
           // Update or create the room
           const rooms = await roomsCollection.query(
             Q.where('room_id', roomId),
-            Q.where('user_id', isMine ? receiverId : senderId)
+            Q.where('username', isMine ? receiver : sender)
           ).fetch();
 
           if (rooms.length > 0) {
@@ -102,7 +102,7 @@ export const chatDBService = {
           } else {
             await roomsCollection.create(room => {
               room.roomId = roomId;
-              room.userId = isMine ? receiverId : senderId;
+              room.username = isMine ? receiver : sender;
               room.lastMsg = message;
               room.updated = timestamp;
             });
@@ -129,7 +129,7 @@ export const chatDBService = {
         Q.sortBy('timestamp', Q.asc)
       ).fetch();
 
-      return messages.map(message => message.toJSON());
+      return messages.map(message => message?.toJSON());
     } catch (error) {
       console.error('Failed to get messages:', error);
       return [];
@@ -145,17 +145,17 @@ export const chatDBService = {
       Q.sortBy('timestamp', Q.asc)
     ).observe()
     .pipe(
-      map(messages => messages.map(message => message.toJSON()))
+      map(messages => messages.map(message => message?.toJSON()))
     );
   },
 
   // Get all rooms for a user
-  getRooms: async (userId: string): Promise<Record<string, any>[]> => {
+  getRooms: async (username: string): Promise<Record<string, any>[]> => {
     try {
       const rooms = await roomsCollection.query(
         Q.or(
-          Q.where('user_id', userId),
-          Q.where('room_id', Q.like(`%${userId}%`))
+          Q.where('username', username),
+          Q.where('room_id', Q.like(`%${username}%`))
         ),
         Q.sortBy('updated', Q.desc)
       ).fetch();
@@ -168,11 +168,11 @@ export const chatDBService = {
   },
 
   // Observe rooms for a user (reactive)
-  observeRooms: (userId: string): Observable<Record<string, any>[]> => {
+  observeRooms: (username: string): Observable<Record<string, any>[]> => {
     return roomsCollection.query(
       Q.or(
-        Q.where('user_id', userId),
-        Q.where('room_id', Q.like(`%${userId}%`))
+        Q.where('username', username),
+        Q.where('room_id', Q.like(`%${username}%`))
       ),
       Q.sortBy('updated', Q.desc)
     ).observe()
@@ -321,15 +321,15 @@ export const chatDBService = {
   },
 
   // Send a typing indicator message - doesn't actually save to database
-  sendTypingIndicator: async (senderId: string, receiverId: string, isTyping: boolean): Promise<any> => {
+  sendTypingIndicator: async (senderUsername: string, receiverUsername: string, isTyping: boolean): Promise<any> => {
     try {
       // Just return a mock object with the typing information
       // We don't want to save typing indicators to the database
       return {
         id: 'typing_' + Date.now(),
-        roomId: getRoomId(senderId, receiverId),
-        senderId: senderId,
-        receiverId: receiverId,
+        roomId: getRoomId(senderUsername, receiverUsername),
+        senderUsername: senderUsername,
+        receiverUsername: receiverUsername,
         message: isTyping ? 'typing' : 'stopped_typing',
         type: 'typing',
         timestamp: Date.now(),

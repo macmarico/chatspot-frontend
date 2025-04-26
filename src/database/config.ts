@@ -37,8 +37,8 @@ export const database = new Database({
   ],
 });
 
-// Helper function to get a room ID from two user IDs
-export const getRoomId = (userId1: string, userId2: string): string => {
+// Helper function to get a room ID from two user identifiers (can be userIds or usernames)
+export const getRoomId = (user1: string, user2: string): string => {
   // Sort the IDs alphabetically and join them with an underscore
-  return [userId1, userId2].sort().join('_');
+  return [user1, user2].sort().join('_');
 };

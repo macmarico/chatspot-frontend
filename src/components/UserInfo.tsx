@@ -3,7 +3,7 @@ import { userService } from '../services/userService';
 import './UserInfo.css';
 
 interface UserInfoProps {
-  userId: string;
+  userId: string; // This is now actually a username
   className?: string;
 }
 
@@ -18,39 +18,25 @@ const UserInfo: React.FC<UserInfoProps> = ({ userId, className = '' }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Since userId is now actually a username, we don't need to fetch user info
   useEffect(() => {
-    const fetchUserInfo = async () => {
-      if (!userId) return;
-      
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await userService.getUserInfo(userId);
-        setUserData(data);
-      } catch (err: any) {
-        console.error('Failed to fetch user info:', err);
-        setError('Failed to load user information');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserInfo();
+    setLoading(false);
+    setError(null);
+    // Create a simple user data object with the username
+    setUserData({
+      id: '', // We don't need the ID
+      username: userId // userId is actually the username
+    });
   }, [userId]);
 
-  // Display first letter of username or userId as avatar
+  // Display first letter of username as avatar
   const getAvatarText = () => {
-    if (userData?.username) {
-      return userData.username.charAt(0).toUpperCase();
-    }
     return userId.charAt(0).toUpperCase();
   };
 
-  // Display username if available, otherwise userId
+  // Display username
   const getDisplayName = () => {
-    if (loading) return 'Loading...';
-    if (error) return userId; // Fallback to userId if error
-    return userData?.username || userId;
+    return userId;
   };
 
   return (

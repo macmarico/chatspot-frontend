@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { selectIsAuthenticated, selectAuthToken, selectUser, logout } from '../redux/slices/authSlice';
 import { connectRequest, disconnectRequest } from '../redux/slices/socketSlice';
-import { setCurrentRoom, setCurrentReceiver, clearCurrentReceiver, selectDBInitialized, selectCurrentRoomId, selectCurrentReceiverId, initializeDatabase, setInitialized } from '../redux/slices/chatDBSlice';
+import { setCurrentRoom, setCurrentReceiver, clearCurrentReceiver, selectDBInitialized, selectCurrentRoomId, selectCurrentReceiverUsername, initializeDatabase, setInitialized } from '../redux/slices/chatDBSlice';
 import { chatDBService } from '../database/service';
 import { useWatermelonObservable } from '../hooks/useWatermelonObservable';
 import MessageInput from './MessageInput';
@@ -22,7 +22,7 @@ const Chat: React.FC = () => {
   const currentUser = useSelector(selectUser);
   const dbInitialized = useSelector(selectDBInitialized);
   const currentRoomId = useSelector(selectCurrentRoomId);
-  const selectedReceiverId = useSelector(selectCurrentReceiverId);
+  const selectedReceiverUsername = useSelector(selectCurrentReceiverUsername);
 
   // Use WatermelonDB observables
   const rooms = useWatermelonObservable(
@@ -31,8 +31,8 @@ const Chat: React.FC = () => {
   );
 
   const messages = useWatermelonObservable(
-    (currentUser && selectedReceiverId) ?
-      chatDBService.observeMessages(currentUser, selectedReceiverId) :
+    (currentUser && selectedReceiverUsername) ?
+      chatDBService.observeMessages(currentUser, selectedReceiverUsername) :
       null,
     []
   );
@@ -78,6 +78,8 @@ const Chat: React.FC = () => {
 
   // Redirect to login if not authenticated
   useEffect(() => {
+
+    console.log('isAuthenticated', isAuthenticated);
     if (!isAuthenticated) {
       navigate('/login');
     } else {
@@ -93,14 +95,14 @@ const Chat: React.FC = () => {
 
   // Update room ID when receiver changes
   useEffect(() => {
-    if (currentUser && selectedReceiverId) {
-      const roomId = getRoomId(currentUser, selectedReceiverId);
+    if (currentUser && selectedReceiverUsername) {
+      const roomId = getRoomId(currentUser, selectedReceiverUsername);
       dispatch(setCurrentRoom(roomId));
     }
-  }, [currentUser, selectedReceiverId, dispatch]);
+  }, [currentUser, selectedReceiverUsername, dispatch]);
 
-  const handleRoomSelect = (userId: string) => {
-    dispatch(setCurrentReceiver(userId));
+  const handleRoomSelect = (username: string) => {
+    dispatch(setCurrentReceiver(username));
 
     // On mobile, hide the rooms list when a chat is selected
     if (isMobileView) {
@@ -116,10 +118,10 @@ const Chat: React.FC = () => {
     setShowNewChatModal(false);
   };
 
-  const handleStartChat = (userId: string) => {
+  const handleStartChat = (username: string) => {
     // Prevent chatting with yourself
-    if (userId !== currentUser) {
-      dispatch(setCurrentReceiver(userId));
+    if (username !== currentUser) {
+      dispatch(setCurrentReceiver(username));
       setShowNewChatModal(false);
 
       // On mobile, hide the rooms list when a chat is started
@@ -162,7 +164,7 @@ const Chat: React.FC = () => {
           <RoomsList
             rooms={rooms}
             onRoomSelect={handleRoomSelect}
-            selectedUserId={selectedReceiverId}
+            selectedUsername={selectedReceiverUsername}
           />
         </div>
 
@@ -173,7 +175,7 @@ const Chat: React.FC = () => {
           ref={messagesContainerRef}
         >
           {/* Mobile back button - only shown when a chat is active on mobile */}
-          {isMobileView && selectedReceiverId && (
+          {isMobileView && selectedReceiverUsername && (
             <div className={`mobile-nav-controls ${!showRoomsList ? 'active' : ''}`}>
               <button className="back-button" onClick={handleBackToRooms}>
                 <span className="back-button-icon">←</span> Back to Chats
@@ -181,18 +183,18 @@ const Chat: React.FC = () => {
             </div>
           )}
 
-          {selectedReceiverId ? (
+          {selectedReceiverUsername ? (
             <>
               <div className="chat-window-container">
                 <ChatWindow
                   messages={messages}
-                  receiverId={selectedReceiverId}
+                  receiverUsername={selectedReceiverUsername}
                   onClearChat={() => console.log('Chat cleared')}
                 />
               </div>
 
               <div className="message-input-container">
-                <MessageInput receiverId={selectedReceiverId} />
+                <MessageInput receiverUsername={selectedReceiverUsername} />
               </div>
             </>
           ) : (

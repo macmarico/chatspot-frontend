@@ -1,6 +1,7 @@
 import { eventChannel, END, EventChannel } from 'redux-saga';
 import { call, put, take, takeEvery, fork, cancel, cancelled, select } from 'redux-saga/effects';
 import { io, Socket } from 'socket.io-client';
+import { debugLog, isDevelopment } from '../../utils/env';
 import {
   connectRequest,
   connectSuccess,
@@ -92,50 +93,53 @@ function* connectSaga() {
       switch (event.type) {
         case 'connect':
           yield put(connectSuccess({ socketId: event.socketId }));
-          console.log('✅ Connected as', event.socketId);
+          debugLog('✅ Connected as', event.socketId);
           break;
         case 'disconnect':
-          console.log('❌ Disconnected');
+          debugLog('❌ Disconnected');
           break;
         case 'error':
           yield put(connectFailure(event.error.message || 'Connection error'));
-          console.error('Connection error:', event.error);
+          debugLog('Connection error:', event.error);
           break;
         case 'message':
-          console.log('📩 Message received:', event.data);
+          debugLog('📩 Message received:', event.data);
 
           // Handle received message based on type
           try {
             const currentUser: string = yield select(selectUser);
-            if (currentUser && event.data.sender_id && event.data.message) {
+            // Get sender username from data, fallback to sender_id for backward compatibility
+            const senderUsername = event.data.sender_username || event.data.sender_id;
+
+            if (currentUser && senderUsername && event.data.message) {
               // Check message type
               const messageType = event.data.type || 'text';
 
               switch (messageType) {
                 case 'clear_chat':
-                  console.log('Received clear chat request from', event.data.sender_id);
+                  debugLog('Received clear chat request from', senderUsername);
                   // Clear the chat in the local database and update room info
                   yield call(
                     chatDBService.clearRoom,
                     currentUser,
-                    event.data.sender_id
+                    senderUsername
                   );
 
                   // Save the clear_chat message to database and update room info
                   yield call(
                     chatDBService.sendClearChatMessage,
-                    event.data.sender_id,
+                    senderUsername,
                     currentUser
                   );
                   break;
 
                 case 'delete_user':
-                  console.log('Received delete user request from', event.data.sender_id);
+                  debugLog('Received delete user request from', senderUsername);
                   // Delete the user room completely
                   yield call(
                     chatDBService.deleteUserRoom,
                     currentUser,
-                    event.data.sender_id
+                    senderUsername
                   );
 
                   // Clear the current receiver to close the chat window
@@ -144,10 +148,10 @@ function* connectSaga() {
 
                 case 'typing':
                   // Handle typing indicator - update typing state in Redux
-                  console.log('Typing indicator from', event.data.sender_id);
+                  debugLog('Typing indicator from', senderUsername);
                   // Use the dedicated typing slice instead of messageReceived
                   yield put(setUserTyping({
-                    userId: event.data.sender_id,
+                    userId: senderUsername,
                     isTyping: event.data.message === 'typing'
                   }));
                   break;
@@ -157,7 +161,7 @@ function* connectSaga() {
                   // Regular text message - save to database and dispatch to UI
                   yield call(
                     chatDBService.saveMessage,
-                    event.data.sender_id,
+                    event.data.sender_username || event.data.sender_id, // Prefer username but fallback to ID for compatibility
                     currentUser,
                     event.data.message,
                     false,
@@ -167,7 +171,7 @@ function* connectSaga() {
               }
             }
           } catch (dbError) {
-            console.error('Failed to handle received message:', dbError);
+            debugLog('Failed to handle received message:', dbError);
           }
           break;
         default:
@@ -175,7 +179,7 @@ function* connectSaga() {
       }
     }
   } catch (error: any) {
-    console.error('Socket channel error:', error);
+    debugLog('Socket channel error:', error);
   } finally {
     if (yield cancelled()) {
       // Close the channel if the saga was cancelled
@@ -185,27 +189,24 @@ function* connectSaga() {
 }
 
 // Saga to handle sending messages
-function* sendMessageSaga(action: PayloadAction<{ receiverId: string, messageText: string, messageType?: 'text' | 'clear_chat' | 'typing' | 'delete_user' }>) {
+function* sendMessageSaga(action: PayloadAction<{ receiverUsername: string, messageText: string, messageType?: 'text' | 'clear_chat' | 'typing' | 'delete_user' }>) {
   try {
-    const { receiverId, messageText, messageType = 'text' } = action.payload;
+    const { receiverUsername, messageText, messageType = 'text' } = action.payload;
 
     if (!socket) {
       throw new Error('Cannot send message: Not connected');
     }
 
-    // Create message object with type (used for text messages)
-    // const messageObj = {
-    //   receiver_id: receiverId,
-    //   message: messageText,
-    //   type: messageType,
-    //   // Add metadata for UI display
-    //   sent_by_me: true,
-    //   timestamp: Date.now()
-    // };
+    // Get current user (now this is a username, not a userId)
+    const currentUser: string = yield select(selectUser);
+    if (!currentUser) {
+      throw new Error('User not authenticated');
+    }
 
     // Send the message with type field
     socket.emit('message', {
-      receiver_id: receiverId,
+      receiver_username: receiverUsername, // Using the proper field name
+      sender_username: currentUser, // Add sender username explicitly
       message: messageText,
       type: messageType
     });
@@ -213,44 +214,44 @@ function* sendMessageSaga(action: PayloadAction<{ receiverId: string, messageTex
     // Handle different message types
     switch (messageType) {
       case 'clear_chat':
-        console.log('Sending clear chat request to', receiverId);
+        debugLog('Sending clear chat request to', receiverUsername);
         try {
           const currentUser: string = yield select(selectUser);
           if (currentUser) {
             // Clear local messages and update room info
-            yield call(chatDBService.clearRoom, currentUser, receiverId);
+            yield call(chatDBService.clearRoom, currentUser, receiverUsername);
 
             // Send a clear chat message (this will also update room info)
             yield call(
               chatDBService.sendClearChatMessage,
               currentUser,
-              receiverId
+              receiverUsername
             );
           }
         } catch (dbError) {
-          console.error('Failed to clear chat:', dbError);
+          debugLog('Failed to clear chat:', dbError);
         }
         break;
 
       case 'delete_user':
-        console.log('Sending delete user request to', receiverId);
+        debugLog('Sending delete user request to', receiverUsername);
         try {
           const currentUser: string = yield select(selectUser);
           if (currentUser) {
             // Delete the user room completely
-            yield call(chatDBService.deleteUserRoom, currentUser, receiverId);
+            yield call(chatDBService.deleteUserRoom, currentUser, receiverUsername);
 
             // Clear the current receiver to close the chat window
             yield put(clearCurrentReceiver());
           }
         } catch (dbError) {
-          console.error('Failed to delete user room:', dbError);
+          debugLog('Failed to delete user room:', dbError);
         }
         break;
 
       case 'typing':
         // Don't save typing indicators to database or add to messages list
-        console.log('Sending typing indicator to', receiverId);
+        debugLog('Sending typing indicator to', receiverUsername);
         // Update our own typing state for consistency
         const currentUser: string = yield select(selectUser);
         if (currentUser) {
@@ -274,14 +275,14 @@ function* sendMessageSaga(action: PayloadAction<{ receiverId: string, messageTex
             yield call(
               chatDBService.saveMessage,
               currentUser,
-              receiverId,
+              receiverUsername,
               messageText,
               true,
               'text'
             );
           }
         } catch (dbError) {
-          console.error('Failed to save message to database:', dbError);
+          debugLog('Failed to save message to database:', dbError);
         }
         break;
     }
@@ -303,7 +304,7 @@ function* disconnectSaga() {
     }
     yield put(disconnectSuccess());
   } catch (error: any) {
-    console.error('Disconnect error:', error);
+    debugLog('Disconnect error:', error);
   }
 }
 

@@ -8,8 +8,8 @@ export class Chat extends Model {
   static table = 'chats';
 
   @text('room_id') roomId!: string;
-  @text('sender_id') senderId!: string;
-  @text('receiver_id') receiverId!: string;
+  @text('sender_username') senderUsername!: string;
+  @text('receiver_username') receiverUsername!: string;
   @text('message') message!: string;
   @text('type') type!: MessageType;
   @date('timestamp') timestamp!: number;
@@ -29,8 +29,8 @@ export class Chat extends Model {
     return {
       id: this.id,
       room_id: this.roomId,
-      sender_id: this.senderId,
-      receiver_id: this.receiverId,
+      sender_username: this.senderUsername,
+      receiver_username: this.receiverUsername,
       message: this.message,
       type: this.type,
       timestamp: this.timestamp,

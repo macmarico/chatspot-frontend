@@ -1,12 +1,79 @@
-# React + Vite
+# ChatSpot Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the frontend application for ChatSpot, a real-time messaging platform.
 
-Currently, two official plugins are available:
+## Environment Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The application uses environment variables to configure different environments. There are three environment configurations:
 
-## Expanding the ESLint configuration
+1. **Development** (`.env.development`): Used for local development
+2. **Staging** (`.env.staging`): Used for testing in a staging environment
+3. **Production** (`.env.production`): Used for production deployment
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Available Environment Variables
+
+| Variable | Description | Example |
+|----------|-------------|----------|
+| `VITE_API_URL` | Backend API URL | `http://localhost:3000/` |
+| `VITE_WS_URL` | WebSocket server URL | `ws://localhost:3000/` |
+| `VITE_ENV` | Current environment | `development`, `staging`, or `production` |
+| `VITE_DEBUG` | Enable debug logging | `true` or `false` |
+
+### Running in Different Environments
+
+The following npm scripts are available to run the application in different environments:
+
+```bash
+# Development environment (default)
+npm run dev
+
+# Staging environment
+npm run dev:staging
+
+# Production environment
+npm run dev:prod
+```
+
+### Building for Different Environments
+
+```bash
+# Build for production (default)
+npm run build
+
+# Build for development
+npm run build:dev
+
+# Build for staging
+npm run build:staging
+```
+
+## Development
+
+### Prerequisites
+
+- Node.js 18+
+- npm 9+
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+```
+
+### Starting the Development Server
+
+```bash
+# Start the development server
+npm run dev
+```
+
+The application will be available at http://localhost:5173/
+
+## Database
+
+The application uses WatermelonDB for local data storage. The database schema is defined in `src/database/schema.ts`.
+
+## State Management
+
+Redux is used for state management with Redux Saga for handling side effects.

@@ -5,10 +5,10 @@ import './MessageInput.css';
 import { RootState } from '../redux/store';
 
 interface MessageInputProps {
-  receiverId: string;
+  receiverUsername: string;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ receiverId }) => {
+const MessageInput: React.FC<MessageInputProps> = ({ receiverUsername }) => {
   const dispatch = useDispatch();
   const connected = useSelector(selectConnected);
   const error = useSelector(selectError);
@@ -40,7 +40,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ receiverId }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!message.trim() || !receiverId || !connected) {
+    if (!message.trim() || !receiverUsername || !connected) {
       if (!connected) {
         setSendStatus({
           success: false,
@@ -52,7 +52,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ receiverId }) => {
 
     // Send as a text message type
     dispatch(sendMessageRequest({
-      receiverId,
+      receiverUsername,
       messageText: message.trim(),
       messageType: 'text'
     }));
@@ -72,9 +72,9 @@ const MessageInput: React.FC<MessageInputProps> = ({ receiverId }) => {
 
   // Send typing indicator
   const sendTypingIndicator = (typing: boolean) => {
-    if (connected && receiverId) {
+    if (connected && receiverUsername) {
       dispatch(sendMessageRequest({
-        receiverId,
+        receiverUsername,
         messageText: typing ? 'typing' : 'stopped_typing',
         messageType: 'typing'
       }));
@@ -145,11 +145,11 @@ const MessageInput: React.FC<MessageInputProps> = ({ receiverId }) => {
         clearTimeout(typingTimeoutRef.current);
       }
 
-      if (isTyping && connected && receiverId) {
+      if (isTyping && connected && receiverUsername) {
         sendTypingIndicator(false);
       }
     };
-  }, [isTyping, connected, receiverId]);
+  }, [isTyping, connected, receiverUsername]);
 
   // Handle Enter key to submit (Shift+Enter for new line)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -175,13 +175,13 @@ const MessageInput: React.FC<MessageInputProps> = ({ receiverId }) => {
             onChange={handleInput}
             onKeyDown={handleKeyDown}
             placeholder={connected ? 'Type a message...' : 'Connect to send messages'}
-            disabled={!connected || !receiverId}
+            disabled={!connected || !receiverUsername}
             className="message-input"
             rows={1}
           />
           <button
             type="submit"
-            disabled={!connected || !message.trim() || !receiverId}
+            disabled={!connected || !message.trim() || !receiverUsername}
             className="send-button"
             title="Send message"
           >
