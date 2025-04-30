@@ -79,7 +79,6 @@
   padding: 12px;
   cursor: pointer;
   transition: background-color 0.2s;
-  border-bottom: 1px solid var(--border-color);
   min-height: 72px; /* Ensure touch targets are large enough */
 }
 
@@ -160,10 +159,9 @@
 
 .room-time {
   font-size: 0.75em;
-  color: var(--primary-color);
+  color: #333;
   white-space: nowrap;
   margin-left: 6px;
-  font-weight: 500;
 }
 
 @media (min-width: 768px) {
@@ -181,6 +179,7 @@
   text-overflow: ellipsis;
   margin-top: 4px;
   max-width: 220px;
+  text-align: left;
 }
 
 @media (min-width: 768px) {
@@ -194,12 +193,11 @@
 
 .room-user-info .user-name {
   font-size: 1em;
-  font-weight: 600;
 }
 
 @media (min-width: 768px) {
   .room-user-info .user-name {
-    font-size: 1.05em;
+    font-size: 0.95rem;
   }
 }
 

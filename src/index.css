@@ -1,31 +1,34 @@
 :root {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Outfit', sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color: #333;
-  background-color: #f0f2f5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  font-size: 16px; /* Mobile-first font size */
 
-  /* Base font size for mobile-first approach */
-  font-size: 16px;
+  /* New primary color */
+  --primary-color: #F0503E;
+  --primary-color-dark: #b53729;
+  --primary-color-tint: #fceded;
+  --primary-color-light: #f8cac8;
+  --primary-color-tone: #928585;
+  --tint-color:#928585;
+  --tint-color-light:#f1f0f0;
 
-  /* Color variables */
-  --primary-color: #F04F3D;
-  --primary-color-dark: #E03A2A;
-  --primary-color-light: rgba(240, 79, 61, 0.2);
   --danger-color: #d32f2f;
   --danger-hover-color: #b71c1c;
-  --background-color: #f0f2f5;
+  --background-color: #f0f0f0;
   --card-background: #ffffff;
-  --text-color: #333333;
+  --text-color: #333;
   --text-secondary: #757575;
   --border-color: #e0e0e0;
   --input-border: #D0D0D0;
   --button-secondary-bg: #f5f5f5;
-  --button-secondary-text: #333333;
+  --button-secondary-text: #333;
   --button-secondary-border: #d0d0d0;
   --button-secondary-hover-bg: #e8e8e8;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -52,12 +55,11 @@ body {
   min-width: 320px;
   min-height: 100vh;
   overflow-y: auto;
-  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
-  touch-action: manipulation; /* Improve touch experience */
+  font-family: 'Outfit', sans-serif;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: #333;
+  color: var(--text-color);
   line-height: 1.2;
 }
 
@@ -69,19 +71,8 @@ h2 {
   font-size: 1.35rem;
 }
 
-/* Larger headings on desktop */
-@media (min-width: 768px) {
-  h1 {
-    font-size: 2rem;
-  }
-
-  h2 {
-    font-size: 1.5rem;
-  }
-}
-
 a {
-  color: #2196f3;
+  color: var(--primary-color);
   text-decoration: none;
 }
 
@@ -89,47 +80,40 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Button styles */
 button {
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  padding: 0.6em 1em; /* Slightly smaller horizontal padding for mobile */
-  font-size: 0.95em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #e0e0e0;
+  border-radius: var(--radius-lg);
+  border: none;
+  font-size: 16px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-height: 44px; /* Minimum touch target size */
-  touch-action: manipulation;
-}
-
-@media (min-width: 768px) {
-  button {
-    padding: 0.6em 1.2em; /* Restore padding on desktop */
-    font-size: 1em;
-  }
+  background-color: var(--primary-color);
+  color: #fff;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  font-family: 'Outfit', sans-serif;
+  min-height: 44px;
 }
 
 button:hover {
-  background-color: #d5d5d5;
+  background-color: var(--primary-color-dark);
+  box-shadow: var(--shadow-md);
 }
 
-button:focus,
-button:focus-visible {
-  outline: 2px solid #2196f3;
+button:focus {
+  outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
 
+/* Input and Textarea Styling */
 input, textarea {
   font-family: inherit;
   font-size: 1rem;
-  padding: 12px;
+  padding: 14px;
   border: 1.5px solid var(--input-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background-color: white;
   width: 100%;
   box-sizing: border-box;
-  min-height: 44px; /* Minimum touch target size */
+  min-height: 44px;
 }
 
 input:focus, textarea:focus {
@@ -156,4 +140,138 @@ input:focus, textarea:focus {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* Chat UI elements */
+.chat-container {
+  text-align: center;
+  max-width: 400px;
+  margin: auto;
+}
+
+.login-container {
+  border: 1px solid #eee;
+  border-radius: var(--radius-lg);
+  width: 300px;
+  padding: 20px;
+  background-color: #fff;
+}
+
+.login-box {
+  display: flex;
+  margin-top: 150px;
+  justify-content: center;
+}
+
+.inputField {
+  height: 50px;
+  border-radius: var(--radius-lg);
+  border: 1px solid #ccc;
+  padding: 0px 15px;
+  width: 90%;
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+}
+
+#messages {
+  height: 50vh;
+  overflow-y: auto;
+  margin-top: 20px;
+  padding: 10px;
+  border-radius: 12px;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+/* Individual message styles */
+.message-div {
+  max-width: 70%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 16px;
+  word-wrap: break-word;
+  margin: 4px 0;
+  display: inline-block;
+  background-color: rgba(255, 69, 0, 0.1);
+}
+
+.my-message {
+  color: var(--primary-color);
+  background-color: rgba(255, 69, 0, 0.2);
+  align-self: flex-end;
+  text-align: right;
+}
+
+.peer-message {
+  color: #333;
+  background-color: #e9e9e9;
+  align-self: flex-start;
+  text-align: left;
+}
+
+.emoji {
+  font-size: 32px;
+  margin: 0px 10px;
+}
+
+.image-div {
+  display: block;
+  margin: 0px;
+  padding: 0px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.image-div img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 12px;
+}
+
+/* Typing animation gradient */
+.typing-gradient {
+  background: linear-gradient(90deg, rgba(255,69,0,0.1), rgba(0,186,255,0.3), rgba(255,69,0,0.1));
+  background-size: 200% 100%;
+  animation: typingGradientAnimation 2s linear infinite;
+  color: rgba(255,69,0,1);
+}
+
+@keyframes typingGradientAnimation {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Avatar styles */
+.avatar-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f0f0f0;
+}
+
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  width: 90%;
+  place-items: center;
+}
+
+.avatar {
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  width: 50px;
+}
+
+.avatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }

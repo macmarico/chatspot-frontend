@@ -105,12 +105,10 @@ const RoomsList: React.FC<RoomsListProps> = ({ rooms = [], onRoomSelect, selecte
             >
               <div className="room-details">
                 <div className="room-header">
-                  <UserInfo userId={room.username} className="room-user-info" />
+                  <UserInfo userId={room.username} className="room-user-info" lastMessage={truncateMessage(room.last_msg)} />
                   <span className="room-time">{formatTime(room.updated)}</span>
                 </div>
-                <div className="room-last-message">
-                  {truncateMessage(room.last_msg)}
-                </div>
+                
               </div>
             </li>
           ))}

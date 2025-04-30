@@ -15,8 +15,8 @@ interface EnvVariables {
 
 // Get environment variables with type safety
 export const env: EnvVariables = {
-  VITE_API_URL: import.meta.env.VITE_API_URL || 'http://localhost:3000/',
-  VITE_WS_URL: import.meta.env.VITE_WS_URL || 'ws://localhost:3000/',
+  VITE_API_URL: import.meta.env.VITE_API_URL || 'https://chatspot-backend-8a7y.onrender.com/',
+  VITE_WS_URL: import.meta.env.VITE_WS_URL || 'wss://chatspot-backend-8a7y.onrender.com/',
   VITE_ENV: (import.meta.env.VITE_ENV as EnvVariables['VITE_ENV']) || 'development',
   VITE_DEBUG: import.meta.env.VITE_DEBUG === 'true' || false,
 };

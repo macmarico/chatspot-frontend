@@ -6,16 +6,15 @@
   margin: 0 auto;
   background-color: var(--card-background);
   border-radius: 0; /* No border radius on mobile for maximum space */
-  box-shadow: var(--shadow-md);
   overflow: hidden;
   position: relative;
+  border: 1px solid #eee;
 }
 
 @media (min-width: 768px) {
   .chat-container {
-    max-width: 1200px;
-    height: 90vh;
-    border-radius: var(--radius-md); /* Restore border radius on desktop */
+    max-width: 960px;
+    height: 92vh;
   }
 }
 
@@ -24,16 +23,16 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
-  background-color: var(--primary-color);
   color: white;
   border-radius: var(--radius-md) var(--radius-md) 0 0;
   z-index: 10;
-  box-shadow: var(--shadow-sm);
 }
 
 @media (min-width: 768px) {
   .chat-header {
     padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+
   }
 }
 
@@ -56,69 +55,70 @@
   align-items: center;
   gap: 8px;
   flex-wrap: nowrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 @media (min-width: 768px) {
   .header-actions {
-    gap: 15px;
+    gap: 0px;
+    width: 100%;
+    margin-bottom: 15px;
   }
 }
 
 .current-user {
-  font-weight: 500;
-  background-color: rgba(255, 255, 255, 0.25);
+
   padding: 4px 8px;
-  border-radius: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100px;
-  box-shadow: var(--shadow-sm);
   font-size: 0.85rem;
+  color: var(--primary-color);
 }
 
 @media (min-width: 768px) {
   .current-user {
-    padding: 5px 10px;
+    padding: 5px 15px;
     border-radius: 15px;
     max-width: 150px;
     font-size: 0.95rem;
+      color: var(--primary-color);
+
   }
 }
 
 .logout-button {
-  background-color: white;
+  background-color: var(--primary-color-tint);
   color: var(--primary-color);
   border: none;
   padding: 6px 10px;
-  border-radius: var(--radius-sm);
+  border-radius: 45px;
   cursor: pointer;
-  font-weight: 600;
   transition: all 0.2s;
-  box-shadow: var(--shadow-sm);
   font-size: 0.85rem;
   min-height: 36px;
 }
 
 @media (min-width: 768px) {
   .logout-button {
-    padding: 8px 15px;
+    padding: 8px 25px;
     font-size: 0.95rem;
-    min-height: 44px;
+    min-height: 50px;
+    width: 100%;
   }
 }
 
 .logout-button:hover {
   background-color: #f5f5f5;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  color: var(--primary-color-dark);
 }
 
 .chat-content {
   display: flex;
   flex-direction: column;
   flex: 1;
-  background-color: var(--background-color);
   border-radius: 0; /* No border radius on mobile */
   overflow: hidden;
   position: relative;
@@ -149,52 +149,44 @@
 }
 
 .rooms-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
   align-items: center;
   padding: 10px;
-  border-bottom: 1px solid var(--border-color);
 }
 
 @media (min-width: 768px) {
   .rooms-header {
-    padding: 15px;
+    padding: 0px 15px;
   }
 }
 
 .rooms-header h3 {
   margin: 0;
-  color: var(--primary-color);
-  font-weight: 600;
-  font-size: 1rem;
+  color: #333;
+  font-size: 0.95rem;
 }
 
 @media (min-width: 768px) {
   .rooms-header h3 {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
   }
 }
 
 .new-chat-button {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: #c5c5c540;
+  color: #333;
   border: none;
   padding: 6px 10px;
-  border-radius: var(--radius-sm);
+  border-radius: 45px;
   cursor: pointer;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 4px;
   transition: all 0.2s;
-  box-shadow: 0 1px 3px rgba(240, 79, 61, 0.3);
   font-size: 0.85rem;
   min-height: 36px;
 }
 
 @media (min-width: 768px) {
   .new-chat-button {
-    padding: 8px 12px;
+    padding: 8px 25px;
     gap: 5px;
     font-size: 0.95rem;
     min-height: 44px;
@@ -208,23 +200,22 @@
 
 .new-chat-button span {
   font-size: 16px;
-  font-weight: bold;
+
 }
 
 .messages-section {
   display: flex;
   flex-direction: column;
   flex: 1;
-  background-color: #F9F9F9; /* Light background */
   position: relative;
   min-height: 60vh; /* Use viewport height for better proportions */
   border-left: none; /* No border on mobile */
+  background-color: #fff;
 }
 
 @media (min-width: 768px) {
   .messages-section {
     min-height: 200px;
-    border-left: 1px solid var(--border-color); /* Restore border on desktop */
   }
 }
 
@@ -236,13 +227,6 @@
   flex-direction: column;
 }
 
-.message-input-container {
-  padding: 8px 10px;
-  background-color: #f0f0f0;
-  border-top: 1px solid var(--border-color);
-  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
-  position: relative;
-}
 
 @media (min-width: 768px) {
   .message-input-container {
@@ -256,7 +240,6 @@
   flex: 1;
   justify-content: center;
   align-items: center;
-  background-color: #f8f9fa;
   height: 100%;
 }
 
@@ -281,24 +264,6 @@
   color: #666;
   margin-bottom: 20px;
 }
-
-.start-chat-button {
-  background-color: #F04F3D;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(240, 79, 61, 0.3);
-}
-
-.start-chat-button:hover {
-  background-color: #E03A2A;
-  box-shadow: 0 3px 6px rgba(240, 79, 61, 0.4);
-}
-
 /* Mobile-first styles are now the default */
 
 .no-chat-content {
@@ -324,19 +289,19 @@
 }
 
 .start-chat-button {
-  background-color: var(--primary-color);
+  background-color: var(--primary-color-tone);
   color: white;
   border: none;
   padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  font-weight: 500;
+  border-radius: 45px;
   cursor: pointer;
   transition: all 0.2s;
   margin-top: 10px;
+  box-shadow: none;
 }
 
 .start-chat-button:hover {
-  background-color: var(--primary-color-dark);
+  background-color: var(--primary-color);
 }
 
 @media (min-width: 768px) {
@@ -382,7 +347,7 @@
   background-color: transparent;
   border: none;
   color: var(--primary-color);
-  font-weight: 600;
+
   display: flex;
   align-items: center;
   gap: 5px;
@@ -420,5 +385,15 @@
 
   .mobile-nav-controls {
     display: none !important; /* Always hidden on desktop */
+  }
+}
+@media (min-width: 768px) {
+  .tab-header{
+    margin: 10px 0px;
+    text-align: center;
+  }
+  .profile-header{
+    padding: 15px;
+    border-bottom:1px solid #eee;
   }
 }

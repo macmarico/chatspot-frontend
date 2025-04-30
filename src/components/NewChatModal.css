@@ -43,7 +43,7 @@
 
 .modal-header h3 {
   margin: 0;
-  color: var(--primary-color);
+  color: #FF4500; /* Updated primary color */
   font-size: 16px;
   font-weight: 600;
 }
@@ -87,21 +87,21 @@
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #555;
+  color: #888;
 }
 
 .form-group input {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 45px;
   font-size: 15px;
 }
 
 .form-group input:focus {
-  border-color: #F04F3D;
+  border-color: #FF4500; /* Updated primary color */
   outline: none;
-  box-shadow: 0 0 0 2px rgba(240, 79, 61, 0.2);
+  box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.2); /* Updated primary color */
 }
 
 .form-group input:disabled {
@@ -137,20 +137,20 @@
 }
 
 .start-chat-button {
-  background-color: #F04F3D;
+  background-color: #FF4500; /* Updated primary color */
   color: white;
   border: none;
   padding: 10px 16px;
   border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
-  box-shadow: 0 2px 4px rgba(240, 79, 61, 0.3);
+  box-shadow: 0 2px 4px rgba(255, 69, 0, 0.3); /* Updated primary color */
   transition: all 0.2s;
 }
 
 .start-chat-button:hover {
   background-color: #E03A2A;
-  box-shadow: 0 3px 6px rgba(240, 79, 61, 0.4);
+  box-shadow: 0 3px 6px rgba(255, 69, 0, 0.4); /* Updated primary color */
 }
 
 .start-chat-button:disabled {

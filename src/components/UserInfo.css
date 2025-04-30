@@ -7,14 +7,15 @@
 @media (min-width: 768px) {
   .user-info {
     gap: 10px;
+    
   }
+
 }
 
 .user-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background-color: var(--primary-color);
   color: white;
   display: flex;
   align-items: center;
@@ -22,11 +23,17 @@
   font-weight: bold;
   font-size: 16px;
 }
+.user-avatar-public{
+  background-color: #272222;
+}
+.user-avatar-self{
+  background-color: var(--primary-color);
+}
 
 @media (min-width: 768px) {
   .user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     font-size: 18px;
   }
 }
@@ -37,7 +44,6 @@
 }
 
 .user-name {
-  font-weight: 500;
   font-size: 14px;
   color: var(--text-color);
 }

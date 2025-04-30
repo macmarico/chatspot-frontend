@@ -178,27 +178,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverUsername
     }
   };
 
+  const chatStatus = connected ? (isTyping ? 'Typing' : 'Online') : 'Offline';
+
   return (
     <div className="chat-window">
       <div className="chat-window-header">
         {receiverUsername && (
           <>
-            <UserInfo userId={receiverUsername} className="chat-contact-info" />
+            <UserInfo userId={receiverUsername} className="chat-contact-info" status={chatStatus} />
             <div className="chat-header-actions">
-              <span className="chat-contact-status">
-                {connected ? (
-                  isTyping ? (
-                    <>
-                      <span className="typing-text">Typing</span>
-                      <span className="header-typing-indicator">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                      </span>
-                    </>
-                  ) : 'Online'
-                ) : 'Offline'}
-              </span>
               <div className="chat-header-buttons">
                 <button
                   className="clear-chat-btn"
@@ -232,14 +220,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverUsername
                 getMessageDate(message.timestamp) !== getMessageDate(messages[index - 1].timestamp);
 
               return (
-                <div key={message.id}>
+               <>
                   {showDateSeparator && (
-                    <div className="message-date-separator">
+                    <div className="message-date-separator" >
                       <span>{getMessageDate(message.timestamp)}</span>
                     </div>
                   )}
                   {message.type === 'clear_chat' ? (
-                    <div className="message-system">
+                    <div className="message-system" key={message.id}>
                       <div className="message-content system">
                         <p>Chat cleared by {message.is_mine ? 'you' : message.sender_username}</p>
                         <span className="message-time">{formatTime(message.timestamp)}</span>
@@ -250,14 +238,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [], receiverUsername
                     null
                   ) : (
                     // Regular text message
-                    <div className={`message ${message.is_mine ? 'sent' : 'received'}`}>
+                    <div className={`message ${message.is_mine ? 'sent' : 'received'}`} key={message.id}>
                       <div className="message-content">
                         <p>{message.message}</p>
                         <span className="message-time">{formatTime(message.timestamp)}</span>
                       </div>
                     </div>
                   )}
-                </div>
+               </>
               );
             })}
             <div ref={messagesEndRef} /> {/* Empty div for scrolling to bottom */}

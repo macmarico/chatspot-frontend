@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #F9F9F9; /* Light background */
   overflow: hidden;
   border-radius: 0; /* No border radius on mobile */
 }
@@ -19,7 +18,6 @@
   padding: 8px 10px;
   background-color: var(--card-background);
   border-bottom: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 5;
@@ -134,8 +132,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: transparent;
-  border-radius: var(--radius-sm);
+  background-color: #fff;
   padding: 5px;
   font-size: 12px;
   cursor: pointer;
@@ -145,13 +142,11 @@
 }
 
 .clear-chat-btn {
-  border: 1px solid var(--primary-color);
-  color: var(--primary-color);
+  color: #000;
 }
 
 .delete-user-btn {
-  border: 1px solid #d32f2f;
-  color: #d32f2f;
+  color: #000;
 }
 
 @media (min-width: 768px) {
@@ -164,11 +159,14 @@
 }
 
 .clear-chat-btn:hover {
-  background-color: rgba(240, 79, 61, 0.1);
+  background-color: orange;
+  box-shadow: none;
 }
 
 .delete-user-btn:hover {
-  background-color: rgba(211, 47, 47, 0.1);
+  background-color: red;
+    box-shadow: none;
+
 }
 
 .clear-icon, .delete-icon {
@@ -247,7 +245,6 @@
   font-size: 11px;
   padding: 4px 10px;
   border-radius: 7px;
-  box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
   z-index: 1;
   font-weight: 500;
 }
@@ -260,28 +257,26 @@
 }
 
 .message-content {
-  padding: 8px 10px 10px;
+  padding: 8px 18px;
   border-radius: 10px;
   position: relative;
-  box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
 }
 
 @media (min-width: 768px) {
   .message-content {
-    padding: 8px 12px 10px;
+  padding: 8px 18px;
+  min-width: 65px;
   }
 }
 
 .sent .message-content {
-  background-color: #FEE8E6; /* Light red for sent messages */
-  border-top-right-radius: 0;
-  border-left: 2px solid var(--primary-color);
+  background-color:var(--primary-color-tint) ; /* Light red for sent messages */
+  border-bottom-right-radius: 0;
 }
 
 .received .message-content {
-  background-color: white;
-  border-top-left-radius: 0;
-  border-right: 2px solid #DDDDDD;
+  background-color: var(--tint-color-light);
+  border-bottom-left-radius: 0;
 }
 
 .message-content p {

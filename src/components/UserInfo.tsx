@@ -5,6 +5,8 @@ import './UserInfo.css';
 interface UserInfoProps {
   userId: string; // This is now actually a username
   className?: string;
+  lastMessage?: string; // Optional prop for last message
+  status?: string; // Optional prop for status
 }
 
 interface UserData {
@@ -13,7 +15,7 @@ interface UserData {
   // Add other user properties as needed
 }
 
-const UserInfo: React.FC<UserInfoProps> = ({ userId, className = '' }) => {
+const UserInfo: React.FC<UserInfoProps> = ({ userId, className = '', lastMessage, status }) => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,11 +43,36 @@ const UserInfo: React.FC<UserInfoProps> = ({ userId, className = '' }) => {
 
   return (
     <div className={`user-info ${className}`}>
-      <div className="user-avatar">
+      <div className="user-avatar user-avatar-public">
         {getAvatarText()}
       </div>
       <div className="user-details">
         <span className="user-name">{getDisplayName()}</span>
+
+        {/* Conditionally render last message if it exists */}
+        {lastMessage && (
+          <div className="room-last-message">
+            {lastMessage}
+          </div>
+        )}
+
+        {/* Conditionally render status if it exists */}
+        {status && (
+          <span className="chat-contact-status">
+            {status === 'Typing' ? (
+              <>
+                <span className="typing-text">Typing</span>
+                <span className="header-typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              </>
+            ) : (
+              status
+            )}
+          </span>
+        )}
       </div>
     </div>
   );

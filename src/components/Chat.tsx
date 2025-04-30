@@ -13,6 +13,7 @@ import NewChatModal from './NewChatModal.tsx';
 import './Chat.css';
 import { getRoomId } from '../database/config';
 
+
 const Chat: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -136,30 +137,46 @@ const Chat: React.FC = () => {
     setShowRoomsList(true);
   };
 
+  const getAvatarText = () => {
+    return currentUser.charAt(0).toUpperCase();
+  };
+
   return (
     <div className="chat-container">
-      <div className="chat-header">
-        <h2>ChatSpot Messenger</h2>
-        <div className="header-actions">
-          <span className="current-user">{currentUser}</span>
-          <button className="logout-button" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
-      </div>
-
       <div className="chat-content">
         {/* Rooms container - conditionally shown on mobile */}
+
         <div
           className="rooms-container"
           style={{ display: isMobileView && !showRoomsList ? 'none' : 'flex' }}
           ref={roomsContainerRef}
         >
+        <div className="profile-header">
+        <div className="header-actions">
+
+        <div className="user-avatar user-avatar-self">
+        {getAvatarText()}
+      </div>
+
+          <span className="current-user">{currentUser}</span>
+          
+          
+          </div>
+          <div>
+
+            <button className="logout-button" onClick={handleLogout}>
+            Logout
+          </button>
+
+          </div>
+          
+        </div>
           <div className="rooms-header">
-            <h3>Chats</h3>
-            <button className="new-chat-button" onClick={handleNewChat}>
-              <span>+</span> New Chat
-            </button>
+            <div className="tab-header" >CHATS</div>
+            <div className="form-group">
+                <input placeholder="Search" />
+            </div>
+      
           </div>
           <RoomsList
             rooms={rooms}
